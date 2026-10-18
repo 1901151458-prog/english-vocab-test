@@ -3,24 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>初中英语词汇量快速定级测试单 · 人教 2024 新版 · 成都适用</title>
-<meta name="description" content="初中英语词汇量快速定级测试单（人教版 2024 新版·成都适用）：5 级 × 20 词共 100 词，5–8 分钟测完，页面自动统计定级、估算词汇量并生成结果卡。">
-<meta name="keywords" content="初中英语,词汇量,定级测试,人教版2024,成都,初二,初三,英语词汇">
+<title>初中英语词汇量快速定级测试单（选择题版）· 人教 2024 新版 · 成都适用</title>
+<meta name="description" content="初中英语词汇量快速定级测试单选择题版：100 道题、每题 4 个选项（含「以上都不正确」），约 12–18 分钟，自动判分、定级、估算词汇量并生成错词回补清单。">
+<meta name="keywords" content="初中英语,词汇量,定级测试,选择题,人教版2024,成都,初二,初三">
 <meta name="theme-color" content="#134B70">
 <meta property="og:type" content="website">
-<meta property="og:title" content="初中英语词汇量快速定级测试单（互动版）">
-<meta property="og:description" content="5 级 × 20 词共 100 词，5–8 分钟测完，自动定级、估算词汇量、生成结果卡与抽查清单。">
+<meta property="og:title" content="初中英语词汇量快速定级测试单（选择题版）">
+<meta property="og:description" content="100 道选择题，每题 4 个选项（含「以上都不正确」），自动判分定级、估算词汇量、生成错词清单。">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<a class="skip-link" href="#test">跳到词表</a>
+<a class="skip-link" href="#test">跳到答题区</a>
 
 <!-- ============================ 打印用页眉（仅打印可见） ============================ -->
 <section class="print-header" aria-hidden="true">
-  <h1>初中英语词汇量快速定级测试单</h1>
-  <p>人教版《英语》（2024 新版）· 成都适用 · 初二 / 初三　|　5 级 × 20 词 ＝ 100 词　|　5–8 分钟</p>
-  <p class="print-fields">姓名：________________　班级：________________　日期：________________　用时：______________</p>
+  <h1>初中英语词汇量快速定级测试单（选择题版）</h1>
+  <p>人教版《英语》（2024 新版）· 成都适用 · 初二 / 初三　|　5 级 × 20 题 ＝ 100 题　|　每题 4 个选项</p>
+  <p class="print-fields">姓名：<span id="pfName">__________</span>　班级：<span id="pfClass">__________</span>　日期：<span id="pfDate">__________</span>　用时：<span id="pfTime">__________</span></p>
 </section>
 
 <!-- ============================ 顶栏 ============================ -->
@@ -30,23 +30,26 @@
       <span class="brand-mark" aria-hidden="true">词</span>
       <span class="brand-text">
         <strong>初中英语词汇量快速定级测试单</strong>
-        <small>人教 2024 新版 · 成都适用</small>
+        <small>人教 2024 新版 · 成都适用 · 选择题版</small>
       </span>
     </a>
     <div class="header-actions">
-      <span class="timer" id="timer" title="从第一次勾选开始计时">
+      <span class="timer" id="timer" title="开始答题后计时">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>
         <span id="timerText">00:00</span>
       </span>
-      <button class="btn btn-ghost btn-sm" id="btnPrint" type="button" title="打印为 A4 测试单" aria-label="打印">
+      <button class="btn btn-ghost btn-sm" id="btnPrint" type="button" title="打印结果" aria-label="打印">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18h12v4H6zM6 14H3V9h18v5h-3"/></svg>
         <span class="btn-label">打印</span>
       </button>
-      <button class="btn btn-ghost btn-sm" id="btnReset" type="button" title="清空勾选并重新计时" aria-label="重置">
+      <button class="btn btn-ghost btn-sm" id="btnReset" type="button" title="重新开始答题" aria-label="重新开始">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M4 10a8 8 0 1 1-1 6"/></svg>
-        <span class="btn-label">重置</span>
+        <span class="btn-label">重新开始</span>
       </button>
-      <a class="btn btn-primary btn-sm" href="#result" id="btnGoResult" aria-label="查看结果"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span class="btn-label">查看结果</span></a>
+      <a class="btn btn-primary btn-sm" href="#result" id="btnGoResult" aria-label="查看结果">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        <span class="btn-label">查看结果</span>
+      </a>
     </div>
   </div>
 </header>
@@ -59,29 +62,29 @@
       <div class="hero-copy">
         <p class="eyebrow"><span class="dot"></span>人教版《英语》（2024 新版）· 成都适用 · 初二 / 初三</p>
         <h1>初中英语词汇量<br><em>快速定级测试单</em></h1>
-        <p class="lede">5 级 × 20 词 ＝ 100 词，5–8 分钟测完；<strong>点选认识的词</strong>，页面即时算出定级与词汇量估算。</p>
+        <p class="lede">100 道选择题，每题 4 个选项；<strong>选出单词的正确含义</strong>，若选项里没有正确含义就选「以上都不正确」——自动判分、定级并生成错词清单。</p>
         <div class="hero-actions">
-          <a class="btn btn-primary btn-lg" href="#test">
-            开始测试
+          <a class="btn btn-primary btn-lg" href="#test" id="heroStart">
+            开始答题
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </a>
           <a class="btn btn-line btn-lg" href="#teacher">教师评分与答案</a>
         </div>
         <ul class="hero-facts" aria-label="测试信息">
-          <li><strong>100</strong><span>单词 · 5 级</span></li>
-          <li><strong>5–8</strong><span>分钟完成</span></li>
+          <li><strong>100</strong><span>道题 · 5 级</span></li>
+          <li><strong>4</strong><span>选项 / 题</span></li>
+          <li><strong>12–18</strong><span>分钟完成</span></li>
           <li><strong>±10%</strong><span>抽样误差</span></li>
-          <li><strong>2400</strong><span>词上限参考</span></li>
         </ul>
       </div>
 
       <aside class="ladder-card" aria-label="五个级别与累计词汇量">
         <div class="ladder-head">
-          <span class="ladder-title">五级阶梯</span>
+          <span class="ladder-title">五级阶梯 · 每级 20 题</span>
           <span class="ladder-sub">越往下越难</span>
         </div>
         <ol class="ladder" id="heroLadder"><!-- JS 生成 --></ol>
-        <p class="ladder-note">累计词量按人教版 2024 新版初中五册估算，含四会词与认读词。</p>
+        <p class="ladder-note">累计词量按人教版 2024 新版初中五册估算，含四会词与认读词；每级答对 ≥16 题即为“通过”。</p>
       </aside>
     </div>
   </section>
@@ -93,31 +96,43 @@
         <span class="kicker">01</span>
         <div>
           <h2>测试说明</h2>
-          <p>先花 30 秒读规则，再开始勾选——跳过才测得准。</p>
+          <p>先花 1 分钟看规则：每题四个选项，其中可能没有正确含义。</p>
         </div>
       </header>
 
       <div class="rules-grid">
         <ol class="rules">
-          <li>本单共 <strong>5 个级别、100 个单词</strong>，抽样自人教版《英语》（2024 新版）七年级上册至九年级各册单词表（成都市现行教材版本）。</li>
-          <li>从 Level 1 开始逐词快速浏览：<strong>能说出中文意思的词，点一下打勾</strong>；说不出或拿不准的，直接跳过——不猜、不查、不讨论。</li>
-          <li>全程约 <strong>5–8 分钟</strong>，凭第一反应作答；做不完不影响定级，宁可少勾，不要多勾。</li>
-          <li>一词多义时，说出任一个常见义项即可；只认得词形、说不出意思，不算认识。</li>
-          <li>完成后，老师/家长会从每个级别随机抽 2 个已勾词口头复核；<strong>页面会自动生成抽查清单</strong>。</li>
-          <li>适用范围：初二、初三；初一期末可只做 Level 1–2 自测。也适用于教师做班级词汇分层。</li>
+          <li>本单共 <strong>5 个级别、100 道题</strong>，抽样自人教版《英语》（2024 新版）七年级上册至九年级各册单词表（成都市现行教材版本）。</li>
+          <li>每题给出 A、B、C 三个中文释义，<strong>选出该单词的正确含义</strong>；若三个选项都不是它的正确含义，选 <strong>D「以上都不正确」</strong>。</li>
+          <li>部分题目<strong>故意不给出正确释义</strong>，此时正确答案就是 D——这是为了防止“蒙对”，请按真实判断作答。</li>
+          <li>每题建议 10–15 秒，全程约 <strong>12–18 分钟</strong>；答错、未答不倒扣。可随时用“上一题”修改答案。</li>
+          <li>提交后自动判分：每级答对 ≥16 题“通过”、12–15 题“边缘”、≤11 题“未过”，并生成定级、词汇量估算与<strong>错词回补清单</strong>。</li>
+          <li>适用范围：初二、初三；初一期末可只做 Level 1–2。也适用于教师做班级词汇分层。</li>
         </ol>
 
         <div class="example-card">
-          <h3>勾选示例</h3>
-          <div class="example-row">
-            <span class="example-word is-on"><i class="example-box" aria-hidden="true"></i><span class="num">1</span>apple</span>
-            <span class="example-tag ok">认识 → 打勾</span>
+          <h3>题型示例</h3>
+          <div class="example-q">
+            <div class="eq-head"><span class="eq-word">apple</span><span class="eq-pos">n.</span><span class="eq-tag">正常题</span></div>
+            <ul class="eq-opts">
+              <li class="is-correct"><span>A</span>苹果</li>
+              <li><span>B</span>香蕉</li>
+              <li><span>C</span>桌子</li>
+              <li class="eq-none"><span>D</span>以上都不正确</li>
+            </ul>
+            <p class="eq-answer">→ 选 A（正确含义在选项中）</p>
           </div>
-          <div class="example-row">
-            <span class="example-word"><i class="example-box" aria-hidden="true"></i><span class="num">2</span>timetable</span>
-            <span class="example-tag no">不认识 → 跳过</span>
+          <div class="example-q">
+            <div class="eq-head"><span class="eq-word">timetable</span><span class="eq-pos">n.</span><span class="eq-tag trap">无正确含义题</span></div>
+            <ul class="eq-opts">
+              <li><span>A</span>苹果</li>
+              <li><span>B</span>森林</li>
+              <li><span>C</span>温度</li>
+              <li class="is-correct eq-none"><span>D</span>以上都不正确</li>
+            </ul>
+            <p class="eq-answer">→ 选 D（正确含义不在选项中）</p>
           </div>
-          <p class="example-note">示例词不计入测试。不确定的词请不要“试探性”勾选——留空最能反映真实水平。</p>
+          <p class="example-note">示例词不计入测试。全卷共 20 道“无正确含义题”（每级 4 道）。</p>
         </div>
       </div>
 
@@ -129,62 +144,99 @@
           <div class="field field-static"><span>测试日期</span><output id="outDate">—</output></div>
           <div class="field field-static"><span>计时</span><output id="outTimer2">00:00</output></div>
         </div>
-        <p class="profile-hint">计时从<strong>第一次勾选</strong>开始；超过 12 分钟结果仅作参考。</p>
+        <p class="profile-hint">计时从<strong>开始答题</strong>起；超过 25 分钟结果仅作参考。答题进度自动保存在本机浏览器。</p>
       </div>
     </div>
   </section>
 
-  <!-- ============================ 02 词表 ============================ -->
+  <!-- ============================ 02 答题 ============================ -->
   <section class="section section-test" id="test">
     <div class="wrap">
       <header class="section-head">
         <span class="kicker">02</span>
         <div>
-          <h2>五个级别词表</h2>
-          <p>点一下＝认识（打勾）；再点一下＝取消。页面自动统计，无需手动计分。</p>
+          <h2>开始答题</h2>
+          <p>共 100 题；点选答案即可自动跳到下一题，可返回修改。</p>
         </div>
       </header>
 
-      <div class="test-toolbar">
-        <div class="global-progress" aria-live="polite">
-          <span class="gp-label">已勾选</span>
-          <strong id="globalCount">0</strong><span class="gp-total">/ 100</span>
-          <div class="gp-bar"><i id="globalBar"></i></div>
+      <!-- 开始面板 -->
+      <div class="start-panel" id="startPanel">
+        <div class="start-main">
+          <h3 id="startTitle">准备好了吗？</h3>
+          <p class="start-sub" id="startSub">共 100 题 · 每题 4 个选项 · 建议 12–18 分钟</p>
+          <ul class="start-points">
+            <li><span>1</span>选出单词的正确中文含义，没有就选「以上都不正确」</li>
+            <li><span>2</span>可返回修改；提交后自动判分，不会边答边显示对错</li>
+            <li><span>3</span>答题进度保存在本机，关闭页面后可继续</li>
+          </ul>
+          <div class="start-actions">
+            <button class="btn btn-primary btn-lg" id="btnStart" type="button">开始答题</button>
+            <button class="btn btn-line btn-lg" id="btnResume" type="button" hidden>继续上次答题</button>
+            <button class="btn btn-ghost btn-lg" id="btnRestart2" type="button" hidden>重新开始</button>
+          </div>
+          <p class="start-note" id="startNote">建议在安静环境完成；本页不需要登录，成绩保存在本机浏览器。</p>
         </div>
-        <div class="toolbar-actions">
-          <button class="btn btn-ghost btn-sm" id="btnClear" type="button">清空勾选</button>
-          <button class="btn btn-line btn-sm" id="btnAnswerToggle" type="button" aria-expanded="false">显示答案</button>
+        <div class="start-side">
+          <div class="start-mini">
+            <span class="start-mini-k">题型</span>
+            <span class="start-mini-v">3 个释义选项 + D「以上都不正确」</span>
+          </div>
+          <div class="start-mini">
+            <span class="start-mini-k">题量</span>
+            <span class="start-mini-v">5 级 × 20 题 = 100 题</span>
+          </div>
+          <div class="start-mini">
+            <span class="start-mini-k">判分</span>
+            <span class="start-mini-v">答对 1 分 / 错、未答 0 分</span>
+          </div>
+          <div class="start-mini">
+            <span class="start-mini-k">定级</span>
+            <span class="start-mini-v">每级答对 ≥16 题通过</span>
+          </div>
         </div>
       </div>
 
-      <div class="test-layout">
-        <div class="levels" id="levels"><!-- JS 生成 5 个级别 --></div>
-
-        <aside class="live-panel" id="livePanel" aria-label="实时统计">
-          <div class="live-sticky">
-            <div class="ring-wrap">
-              <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
-                <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
-                <circle class="ring-fg" id="ringFg" cx="60" cy="60" r="52"></circle>
-              </svg>
-              <div class="ring-text">
-                <strong id="liveTotal">0</strong>
-                <span>已勾选</span>
-              </div>
+      <!-- 答题区 -->
+      <div class="runner" id="runner" hidden>
+        <div class="runner-main">
+          <article class="q-card" id="qCard">
+            <div class="q-head">
+              <span class="q-level" id="qLevel">Level 1 起步级</span>
+              <span class="q-count" id="qCount">第 1 / 100 题</span>
+              <span class="q-levelcount" id="qLevelCount">本级 1/20</span>
             </div>
-
-            <div class="live-verdict">
-              <span class="live-label">当前定级</span>
-              <strong class="live-level" id="liveLevel">尚未开始</strong>
-              <span class="live-estimate" id="liveEstimate">勾选后实时显示估算词汇量</span>
+            <div class="q-progress"><i id="qProgress"></i></div>
+            <p class="q-prompt">请选择下面单词的正确中文含义</p>
+            <div class="q-word-row">
+              <strong class="q-word" id="qWord">grade</strong>
+              <span class="q-pos" id="qPos">n.</span>
             </div>
-
-            <ul class="live-levels" id="liveLevels"><!-- JS --></ul>
-
-            <div class="live-actions">
-              <a class="btn btn-primary btn-block" href="#result">查看完整结果</a>
-              <button class="btn btn-ghost btn-block" id="btnPrint2" type="button">打印本单</button>
+            <div class="q-options" id="qOptions" role="group" aria-label="答案选项"></div>
+            <div class="q-actions">
+              <button class="btn btn-ghost btn-sm" id="btnPrev" type="button">上一题</button>
+              <button class="btn btn-ghost btn-sm" id="btnNext" type="button">下一题</button>
+              <span class="q-hint">键盘 1–4 选择 · ← → 切换</span>
+              <button class="btn btn-primary btn-sm" id="btnSubmit" type="button">提交答案</button>
             </div>
+          </article>
+        </div>
+
+        <aside class="sheet-panel">
+          <div class="sheet-sticky">
+            <div class="sheet-head">
+              <strong>答题卡</strong>
+              <span id="sheetAnswered">已答 0 / 100</span>
+            </div>
+            <div class="sheet-levels" id="sheetLevels"><!-- JS --></div>
+            <div class="sheet-map" id="sheetMap" aria-label="题目导航"><!-- JS --></div>
+            <div class="sheet-legend">
+              <span><i class="dot done"></i>已答</span>
+              <span><i class="dot cur"></i>当前</span>
+              <span><i class="dot"></i>未答</span>
+            </div>
+            <button class="btn btn-primary btn-block" id="btnSubmit2" type="button">提交答案</button>
+            <p class="sheet-note">点题号可跳转；提交后自动判分并生成结果。</p>
           </div>
         </aside>
       </div>
@@ -197,16 +249,16 @@
       <header class="section-head">
         <span class="kicker">03</span>
         <div>
-          <h2>定级结果</h2>
-          <p>勾选后实时计算；可保存本次记录，用于学期复测对比。</p>
+          <h2>测试结果</h2>
+          <p>提交后自动生成：判分、定级、词汇量估算、错词回补清单与逐题回顾。</p>
         </div>
       </header>
 
       <div class="result-empty" id="resultEmpty">
         <div class="empty-icon" aria-hidden="true">词</div>
-        <h3>还没有勾选任何单词</h3>
-        <p>到上面的词表点选“认识”的单词，这里会即时生成定级、词汇量估算与结果卡。</p>
-        <a class="btn btn-primary" href="#test">去勾选单词</a>
+        <h3>还没有提交答案</h3>
+        <p>完成上面的 100 道选择题并点击“提交答案”，这里会生成定级结果、错词清单与逐题回顾。</p>
+        <a class="btn btn-primary" href="#test" id="btnGoTest">去答题</a>
       </div>
 
       <div class="result-body" id="resultBody" hidden>
@@ -227,14 +279,14 @@
               <small id="resRange">区间 1450–1698 词</small>
             </div>
             <div class="rc-stat">
-              <span>勾选总数</span>
-              <strong id="resTotal">60 / 100</strong>
-              <small id="resQuick">快速粗估：×24 ≈ 1440 词</small>
+              <span>答对题数</span>
+              <strong id="resCorrect">72 / 100</strong>
+              <small id="resAccuracy">正确率 72%</small>
             </div>
             <div class="rc-stat">
               <span>测试用时</span>
-              <strong id="resTime">05:32</strong>
-              <small id="resTimeNote">在 5–8 分钟区间内</small>
+              <strong id="resTime">12:35</strong>
+              <small id="resTimeNote">在 12–18 分钟区间内</small>
             </div>
             <div class="rc-stat">
               <span>建议回补</span>
@@ -242,6 +294,7 @@
               <small id="resStop">止于第 4 级</small>
             </div>
           </div>
+          <p class="rc-meta" id="resMeta">误选 20 题 · 未答 8 题 · “无正确含义”题答对 12 / 20</p>
           <div class="rc-advice">
             <h4>下一步怎么做</h4>
             <p id="resAdvice">补八下＋九年级前四单元；抓词块、一词多义与构词法</p>
@@ -250,17 +303,18 @@
           <div class="rc-actions">
             <button class="btn btn-primary btn-sm" id="btnSaveResult" type="button">保存本次记录</button>
             <button class="btn btn-line btn-sm" id="btnCopyResult" type="button">复制结果</button>
-            <button class="btn btn-ghost btn-sm" id="btnPrintResult" type="button">打印结果卡</button>
+            <button class="btn btn-ghost btn-sm" id="btnPrintResult" type="button">打印结果</button>
+            <button class="btn btn-ghost btn-sm" id="btnRetake" type="button">重新测试</button>
           </div>
-          <p class="rc-note">结果仅用于分层教学与词汇回补，不作学业评价依据；抽样误差约 ±10%。</p>
+          <p class="rc-note">结果用于分层教学与词汇回补，不作学业评价依据；抽样误差约 ±10%。</p>
         </div>
 
         <!-- 分布图 + 刻度尺 -->
         <div class="result-grid">
           <div class="panel">
             <div class="panel-head">
-              <h3>勾选分布图</h3>
-              <span class="panel-sub">每行 20 格 = 该级第 1–20 词；已勾词填色</span>
+              <h3>答题分布图</h3>
+              <span class="panel-sub">每行 20 格 = 该级第 1–20 题；绿=对，红=错，灰=未答</span>
             </div>
             <div class="dist-grid" id="distGrid"></div>
             <ul class="dist-legend" id="distLegend"></ul>
@@ -275,15 +329,20 @@
           </div>
         </div>
 
-        <!-- 抽查清单 -->
-        <div class="panel" id="spotPanel">
+        <!-- 错词回补清单 -->
+        <div class="panel" id="wrongPanel">
           <div class="panel-head">
-            <h3>口头抽查清单</h3>
-            <span class="panel-sub">每级随机 2 个已勾词，请学生说出中文意思（答案见“教师答案”）</span>
-            <button class="btn btn-ghost btn-xs" id="btnSpotRefresh" type="button">换一组</button>
+            <h3>错词回补清单</h3>
+            <span class="panel-sub">错题与未答题；按级别整理，可直接打印给学生回补</span>
           </div>
-          <div class="spot-list" id="spotList"></div>
+          <div class="wrong-list" id="wrongList"></div>
         </div>
+
+        <!-- 逐题回顾 -->
+        <details class="panel collapsible" id="reviewPanel">
+          <summary><span>逐题回顾</span><small>全部 100 题：你的答案 / 正确答案</small></summary>
+          <div id="reviewTables"></div>
+        </details>
 
         <!-- 水平对照 -->
         <div class="panel">
@@ -310,12 +369,12 @@
           <div class="table-wrap">
             <table class="table history-table" id="historyTable">
               <thead>
-                <tr><th>次数</th><th>日期</th><th>姓名/班级</th><th>用时</th><th>勾选总数</th><th>定级</th><th>估算词汇量</th><th>较上次</th></tr>
+                <tr><th>次数</th><th>日期</th><th>姓名/班级</th><th>用时</th><th>答对</th><th>定级</th><th>估算词汇量</th><th>较上次</th></tr>
               </thead>
               <tbody><!-- JS --></tbody>
             </table>
           </div>
-          <p class="panel-note" id="historyEmpty">还没有保存记录。做完测试后点“保存本次记录”，即可在这里追踪变化。</p>
+          <p class="panel-note" id="historyEmpty">还没有保存记录。提交后点“保存本次记录”，即可在这里追踪变化。</p>
         </div>
       </div>
     </div>
@@ -328,33 +387,33 @@
         <span class="kicker">04</span>
         <div>
           <h2>评分规则与教师答案</h2>
-          <p>全部展开查看：判级标准、估算公式、逐词答案与使用说明。</p>
+          <p>题型说明、判级标准、估算公式、逐题答案与使用说明。</p>
         </div>
       </header>
 
       <div class="teacher-grid">
         <div class="panel">
-          <div class="panel-head"><h3>判级标准</h3><span class="panel-sub">每级 20 词</span></div>
-          <div class="table-wrap">
-            <table class="table judge-table">
-              <thead><tr><th>判定</th><th class="ok">通过</th><th class="mid">边缘</th><th class="no">未过</th></tr></thead>
-              <tbody><tr><td>每级勾选数</td><td class="ok">≥ 16 个</td><td class="mid">12–15 个</td><td class="no">≤ 11 个</td></tr></tbody>
-            </table>
-          </div>
-          <p class="panel-note">定级：从 Level 1 起逐级查看，取“连续通过”的最高级；若最高通过级之后一级为“边缘”，记为“X 级边缘”。L1 未达通过记为“未达 Level 1”。停笔或未做的级别按 0 计。</p>
+          <div class="panel-head"><h3>题型与判分</h3><span class="panel-sub">选择题版 v3.0</span></div>
+          <ul class="bullets">
+            <li><strong>100 题</strong>：5 级 × 20 题；每题 3 个释义选项 + 选项 D「以上都不正确」。</li>
+            <li><strong>正常题 80 道</strong>：正确含义在 A/B/C 中（每级 16 道）。</li>
+            <li><strong>无正确含义题 20 道</strong>：每级 4 道，正确含义不在选项中，正确答案为 D。</li>
+            <li><strong>判分</strong>：答对 1 分；选错、未答 0 分，答错不倒扣；每级满分 20 分。</li>
+            <li><strong>定级</strong>：从 Level 1 起逐级查看，取“连续通过”的最高级；每级答对 ≥16 题通过，12–15 题边缘，≤11 题未过。</li>
+          </ul>
         </div>
 
         <div class="panel">
           <div class="panel-head"><h3>精确法估算词汇量</h3><span class="panel-sub">页面即按此公式实时计算</span></div>
           <div class="formula">
-            词汇量 ≈ <em>前 k−1 级累计词量</em> ＋（<em>第 k 级勾选数</em> ÷ 20）× <em>第 k 级增量词量</em>
+            词汇量 ≈ <em>前 k−1 级累计词量</em> ＋（<em>第 k 级答对数</em> ÷ 20）× <em>第 k 级增量词量</em>
           </div>
-          <p class="panel-note">k ＝ 第一个未达到通过标准的级别（边缘或未过）；五级全过时取 k＝5。算例：L1–L3 通过、L4 勾 8 个 → 1450 ＋ (8÷20)×450 ≈ <strong>1630 词</strong>（定级 Level 3）。</p>
-          <p class="panel-note">快速粗估（仅作粗略比较）：总勾选数 × 24 ≈ 词汇量，对高级别学生会偏低。</p>
+          <p class="panel-note">k ＝ 第一个未达到通过标准的级别（边缘或未过）；五级全过时取 k＝5。算例：L1–L3 通过、L4 答对 8 题 → 1450 ＋ (8÷20)×450 ≈ <strong>1630 词</strong>（定级 Level 3）。</p>
+          <p class="panel-note">“以上都不正确”题答对同样计入答对数；它检验的是“能否确认选项都不对”，比普通题更依赖真实掌握。</p>
         </div>
       </div>
 
-      <details class="panel collapsible" open>
+      <details class="panel collapsible">
         <summary><span>定级与词汇量速查表</span><small>按定级结果直接查</small></summary>
         <div class="table-wrap">
           <table class="table range-table" id="rangeTable">
@@ -365,31 +424,31 @@
       </details>
 
       <details class="panel collapsible" id="answersPanel">
-        <summary><span>教师抽查答案表</span><small>词性 · 中文释义 · 覆盖全部 100 词</small></summary>
-        <p class="panel-note">词性缩写：n. 名词（[U] 表示不可数名词）；v. 动词；adj. 形容词；adv. 副词；conj. 连词。</p>
+        <summary><span>教师答案表</span><small>100 题：标准释义 · 正确选项 · 题型</small></summary>
+        <p class="panel-note">词性缩写：n. 名词（[U] 表示不可数）；v. 动词；adj. 形容词；adv. 副词；conj. 连词。“无正确含义”题的正确答案为 D。</p>
         <div id="answerTables"><!-- JS --></div>
       </details>
 
       <details class="panel collapsible">
         <summary><span>教师须知</span><small>施测 5 分钟上手</small></summary>
         <ul class="bullets">
-          <li><strong>施测环境</strong>：安静、无词典/手机/翻译笔；学生之间不讨论。教师只提示“开始”和“还剩 1 分钟”。</li>
-          <li><strong>判定口径</strong>：说得出中文意思才算“认识”；只认得词形不算。勾了但抽查说不出，该词按“不认识”计。</li>
-          <li><strong>抽查方式</strong>：每级随机抽 2 个已勾词（5 级合计最多 10 个），口头说义；结果按 5 级合计记录。</li>
-          <li><strong>数据解读</strong>：抽样误差约 ±10%，用于分层与回补，不作学业评价依据。</li>
+          <li><strong>施测环境</strong>：安静、无词典/手机/翻译笔；学生之间不讨论。教师只提示“开始”和“还剩 5 分钟”。</li>
+          <li><strong>判定口径</strong>：选对即算“认识”；选错或未答均视为“不认识/未掌握”。若学生知道词义但选项中没有，应选 D。</li>
+          <li><strong>数据解读</strong>：抽样误差约 ±10%；“无正确含义题”答对率可单独反映辨别与自信程度。</li>
+          <li><strong>错词回补</strong>：结果页的“错词回补清单”按级别列出错题与未答题，可直接作为回补任务单。</li>
           <li><strong>复测建议</strong>：每学期 1 次，使用同一版本，便于纵向对比进步。</li>
-          <li><strong>打印</strong>：点右上角“打印”可直接打印当前勾选状态与结果；也可下载<a href="assets/vocab-test-print.pdf" download>空白打印版 PDF</a>（6 页 A4，含答案表与结果卡）。</li>
+          <li><strong>打印</strong>：结果页可打印结果卡与错词清单；也可下载<a href="assets/vocab-test-mcq-print.pdf" download>选择题打印卷 PDF</a>或<a href="assets/vocab-test-print.pdf" download>快速勾选版 PDF</a>。</li>
         </ul>
       </details>
 
       <details class="panel collapsible">
         <summary><span>使用流程</span><small>教师 5 分钟上手</small></summary>
         <ol class="steps">
-          <li><strong>打印</strong>：A4 双面打印；第 1–2 页交学生，第 3–5 页教师留存，第 6 页结果卡填写后存档。</li>
-          <li><strong>施测</strong>：发单、读规则、计时 5–8 分钟；学生逐词打勾，不许查词、不许讨论。</li>
-          <li><strong>计分</strong>：网页版自动统计；纸质版按判级标准逐级数勾。</li>
-          <li><strong>定级</strong>：用精确法（或速查表）估算词汇量，填写结果卡。</li>
-          <li><strong>抽查与回补</strong>：每级抽 2 词口头复核；按“回补重点”锁定级别，安排复测。</li>
+          <li><strong>答题</strong>：网页答题或打印选择题卷；建议 12–18 分钟，统一开始、统一收卷。</li>
+          <li><strong>判分</strong>：网页版自动判分；纸卷按答案表批改，每题 1 分，答错不倒扣。</li>
+          <li><strong>定级</strong>：每级 ≥16 题通过，取连续通过的最高级；用精确法或速查表估算词汇量。</li>
+          <li><strong>回补</strong>：按“错词回补清单”和第五部分“回补重点”锁定回补级别，安排复测。</li>
+          <li><strong>复测</strong>：每学期 1 次，保存结果记录，对比进步。</li>
         </ol>
       </details>
     </div>
@@ -400,14 +459,15 @@
 <footer class="site-footer">
   <div class="wrap footer-grid">
     <div>
-      <strong>初中英语词汇量快速定级测试单（互动版）</strong>
-      <p>人教版《英语》（2024 新版）· 成都适用 · 升级版 v2.0（2026-10）</p>
+      <strong>初中英语词汇量快速定级测试单（选择题版 v3.0）</strong>
+      <p>人教版《英语》（2024 新版）· 成都适用 · 2026-10</p>
     </div>
-    <p class="footer-note">本页可离线使用；勾选与复测记录只保存在本机浏览器，不会上传服务器。</p>
+    <p class="footer-note">本页可离线使用；答题与复测记录只保存在本机浏览器，不会上传服务器。</p>
     <div class="footer-links">
       <a href="https://github.com/1901151458-prog/english-vocab-test" target="_blank" rel="noopener">GitHub 仓库</a>
       <a href="assets/source/vocab-test-v2.tex" download>LaTeX 源码</a>
-      <a href="assets/vocab-test-print.pdf" download>打印版 PDF</a>
+      <a href="assets/vocab-test-print.pdf" download>快速勾选版 PDF</a>
+      <a href="assets/vocab-test-mcq-print.pdf" download>选择题打印卷</a>
     </div>
   </div>
 </footer>
@@ -415,10 +475,10 @@
 <!-- 移动端底部条 -->
 <div class="mini-bar" id="miniBar" aria-hidden="true">
   <div class="mini-info">
-    <span>已勾 <strong id="miniCount">0</strong>/100</span>
-    <span class="mini-level" id="miniLevel">尚未开始</span>
+    <span>已答 <strong id="miniCount">0</strong>/100</span>
+    <span class="mini-level" id="miniLevel">未开始</span>
   </div>
-  <a class="btn btn-primary btn-sm" href="#result">看结果</a>
+  <a class="btn btn-primary btn-sm" href="#test" id="miniJump">答题</a>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
