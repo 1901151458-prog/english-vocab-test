@@ -1581,7 +1581,7 @@ body.is-testing .wrap { width: 100% !important; max-width: none !important; padd
 }
 .stage-cell.is-correct { background: #2F7D5B; border-color: #2F7D5B; color: #fff; }
 .stage-cell.is-wrong { background: #C0553F; border-color: #C0553F; color: #fff; }
-.stage-cell.is-timeout { background: #D98570; border-color: #D98570; color: #fff; }
+.stage-cell.is-timeout { background: #C0553F; border-color: #C0553F; color: #fff; }
 .stage-cell.is-untested { background: rgba(76, 140, 181, .14); border-color: rgba(76, 140, 181, .4); color: #3E719A; }
 .stage-cell.is-current { outline: 2px solid var(--brand); outline-offset: 1px; transform: scale(1.12); z-index: 1; }
 .stage-note { font-size: .7rem; color: var(--muted-2); text-align: center; margin: 0; }
