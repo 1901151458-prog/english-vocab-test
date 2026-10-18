@@ -17,8 +17,9 @@
     return item.ans === -1 ? NONE_INDEX : item.ans;
   }
 
-  /** 单题判分：correct / wrong / blank */
+  /** 单题判分：correct / wrong / timeout / blank（blank = 未测） */
   function grade(item, choice) {
+    if (choice === -1) return "timeout";
     if (choice === undefined || choice === null) return "blank";
     return choice === answerOf(item) ? "correct" : "wrong";
   }
@@ -149,6 +150,7 @@
         total: lv.words.length,
         correct: 0,
         wrong: 0,
+        timeout: 0,
         blank: 0
       };
     });
@@ -177,13 +179,14 @@
       };
     });
 
-    var total = { correct: 0, wrong: 0, blank: 0, answered: 0, total: items.length };
+    var total = { correct: 0, wrong: 0, timeout: 0, blank: 0, answered: 0, total: items.length };
     perLevel.forEach(function (p) {
       total.correct += p.correct;
       total.wrong += p.wrong;
+      total.timeout += p.timeout;
       total.blank += p.blank;
     });
-    total.answered = total.correct + total.wrong;
+    total.answered = total.correct + total.wrong + total.timeout;
 
     var counts = perLevel.map(function (p) { return p.correct; });
     var result = evaluate(counts, data);
