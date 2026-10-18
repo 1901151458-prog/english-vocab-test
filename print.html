@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>初中英语词汇量快速定级测试单（选择题打印卷）</title>
+<style>
+  :root { --brand:#134B70; --ink:#111; --muted:#555; --line:#bbb; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background:#fff; color:var(--ink); }
+  body {
+    font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    font-size: 9.6pt;
+    line-height: 1.5;
+    padding: 14mm 14mm 10mm;
+    max-width: 210mm;
+    margin: 0 auto;
+  }
+  h1 { font-size: 16pt; color: var(--brand); margin: 0 0 3mm; letter-spacing: .3pt; }
+  .sub { font-size: 8.6pt; color: var(--muted); margin-bottom: 2mm; }
+  .fields { font-size: 9.4pt; margin: 3mm 0 4mm; padding-bottom: 2.5mm; border-bottom: 1pt solid var(--brand); }
+  .intro { font-size: 8.4pt; color: #333; margin-bottom: 4mm; line-height: 1.7; }
+  .intro b { color: var(--brand); }
+  .level { margin-bottom: 4mm; break-inside: auto; }
+  .level h2 {
+    font-size: 10.2pt;
+    color: #fff;
+    background: var(--lv, #134B70);
+    margin: 0 0 2mm;
+    padding: 1.4mm 2.5mm;
+    border-radius: 1.2mm;
+    letter-spacing: .3pt;
+  }
+  .items { display: grid; grid-template-columns: 1fr; gap: 0.6mm; }
+  .q {
+    display: flex;
+    gap: 2mm;
+    align-items: baseline;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border-bottom: .4pt dotted #ccc;
+    padding: 0.7mm 0;
+    font-size: 8.5pt;
+  }
+  .q .no { flex: 0 0 17mm; font-weight: 700; color: var(--lv, #134B70); white-space: nowrap; font-size: 8.2pt; }
+  .q .word { flex: 0 0 26mm; font-weight: 700; font-family: "Segoe UI", Arial, sans-serif; font-size: 9pt; }
+  .q .pos { flex: 0 0 13mm; color: #777; font-size: 7.6pt; font-style: italic; }
+  .q .opts { flex: 1; color: #222; }
+  .q .opts em { font-style: normal; color: #777; }
+  .none { color: #777; }
+  .answer-sheet { margin-top: 5mm; break-inside: avoid; page-break-inside: avoid; }
+  .answer-sheet h2 { font-size: 10pt; color: var(--brand); margin: 0 0 2mm; }
+  .sheet { display: grid; grid-template-columns: repeat(10, 1fr); gap: 1.6mm; }
+  .sheet .cell {
+    border: .6pt solid #999;
+    border-radius: .8mm;
+    height: 7mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 7.4pt;
+    color: #999;
+    font-family: "Segoe UI", Arial, sans-serif;
+  }
+  .footer-note { margin-top: 4mm; font-size: 7.6pt; color: #777; border-top: .6pt solid #ccc; padding-top: 2mm; }
+  @page { size: A4; margin: 12mm 13mm; }
+  @media print {
+    body { padding: 0; max-width: none; }
+    .no-print { display: none; }
+  }
+</style>
+</head>
+<body>
+<h1>初中英语词汇量快速定级测试单（选择题卷）</h1>
+<p class="sub">人教版《英语》（2024 新版）· 成都适用 · 初二 / 初三　|　5 级 × 20 题 ＝ 100 题　|　每题 4 个选项</p>
+<p class="fields">姓名：____________________　班级：____________________　日期：________________　用时：______________</p>
+<p class="intro">
+  <b>答题说明：</b>每题给出 A、B、C 三个中文释义，选出该单词的<b>正确含义</b>；若三个选项都不是它的正确含义，选 <b>D. 以上都不正确</b>。
+  部分题目故意不给出正确释义，此时正确答案为 D。每题 1 分，答错、未答不倒扣；建议 12–18 分钟完成。
+  请把答案字母写在题号前的括号里，或直接圈出选项。
+</p>
+
+<div id="levels"></div>
+
+<div class="answer-sheet">
+  <h2>答题卡（把每题答案字母写在格子里）</h2>
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<p class="footer-note">
+  编制说明：本卷按成都市现行人教版《英语》（2024 新版）初中各册单词表抽样编制，共 100 题；每级答对 ≥16 题为“通过”，12–15 题为“边缘”，≤11 题为“未过”。
+  参考答案见互动版网页“教师答案表”。
+</p>
+
+<script src="assets/data.js"></script>
+<script>
+(function () {
+  var data = window.VT_DATA;
+  var letters = ["A", "B", "C", "D"];
+  var html = "";
+  data.levels.forEach(function (lv) {
+    html += '<section class="level" style="--lv:' + lv.color + '">' +
+      "<h2>Level " + lv.id + " " + lv.name + "（" + lv.book + "，20 题）</h2>" +
+      '<div class="items">';
+    lv.words.forEach(function (w) {
+      var opts = w.opts.map(function (o, i) {
+        return "<span>" + letters[i] + ". " + o + "</span>";
+      }).join("　");
+      html += '<div class="q">' +
+        '<span class="no">' + w.n + ".（　）</span>" +
+        '<span class="word">' + w.w + "</span>" +
+        '<span class="pos">' + w.pos + "</span>" +
+        '<span class="opts">' + opts + '　<span class="none">D. 以上都不正确</span></span>' +
+        "</div>";
+    });
+    html += "</div></section>";
+  });
+  document.getElementById("levels").innerHTML = html;
+
+  var cells = "";
+  for (var i = 1; i <= 100; i++) cells += '<div class="cell">' + i + "</div>";
+  document.getElementById("sheet").innerHTML = cells;
+  document.title = "初中英语词汇量快速定级测试单（选择题打印卷）";
+})();
+</script>
+</body>
+</html>
