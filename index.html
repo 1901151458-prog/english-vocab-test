@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>初中英语词汇量快速定级测试单（选择题版）· 人教 2024 新版 · 成都适用</title>
-<meta name="description" content="初中英语词汇量快速定级测试单选择题版：100 道题、每题 4 个选项（含「以上都不正确」），约 12–18 分钟，自动判分、定级、估算词汇量并生成错词回补清单。">
+<meta name="description" content="初中英语词汇量快速定级测试单选择题版：100 道题、每题 4 个选项（含「以上都不正确」），每题 5 秒自动进入下一题，选完立即判对错，连续 10 题答错自动结束；自动定级并生成错词清单。">
 <meta name="keywords" content="初中英语,词汇量,定级测试,选择题,人教版2024,成都,初二,初三">
 <meta name="theme-color" content="#134B70">
 <meta property="og:type" content="website">
@@ -62,7 +62,7 @@
       <div class="hero-copy">
         <p class="eyebrow"><span class="dot"></span>人教版《英语》（2024 新版）· 成都适用 · 初二 / 初三</p>
         <h1>初中英语词汇量<br><em>快速定级测试单</em></h1>
-        <p class="lede">100 道选择题，每题 4 个选项；<strong>选出单词的正确含义</strong>，若选项里没有正确含义就选「以上都不正确」——自动判分、定级并生成错词清单。</p>
+        <p class="lede">100 道选择题，每题 4 个选项；<strong>选出单词的正确含义</strong>，若选项里没有正确含义就选「以上都不正确」——每题 5 秒自动进入下一题，选完立刻判对错；连续 10 题答错自动结束，杜绝猜题。</p>
         <div class="hero-actions">
           <a class="btn btn-primary btn-lg" href="#test" id="heroStart">
             开始答题
@@ -73,8 +73,8 @@
         <ul class="hero-facts" aria-label="测试信息">
           <li><strong>100</strong><span>道题 · 5 级</span></li>
           <li><strong>4</strong><span>选项 / 题</span></li>
-          <li><strong>12–18</strong><span>分钟完成</span></li>
-          <li><strong>±10%</strong><span>抽样误差</span></li>
+          <li><strong>5 秒</strong><span>自动下一题</span></li>
+          <li><strong>10 连错</strong><span>自动结束</span></li>
         </ul>
       </div>
 
@@ -105,8 +105,9 @@
           <li>本单共 <strong>5 个级别、100 道题</strong>，抽样自人教版《英语》（2024 新版）七年级上册至九年级各册单词表（成都市现行教材版本）。</li>
           <li>每题给出 A、B、C 三个中文释义，<strong>选出该单词的正确含义</strong>；若三个选项都不是它的正确含义，选 <strong>D「以上都不正确」</strong>。</li>
           <li>部分题目<strong>故意不给出正确释义</strong>，此时正确答案就是 D——这是为了防止“蒙对”，请按真实判断作答。</li>
-          <li>每题建议 10–15 秒，全程约 <strong>12–18 分钟</strong>；答错、未答不倒扣。可随时用“上一题”修改答案。</li>
-          <li>提交后自动判分：每级答对 ≥16 题“通过”、12–15 题“边缘”、≤11 题“未过”，并生成定级、词汇量估算与<strong>错词回补清单</strong>。</li>
+          <li><strong>每题限时 5 秒</strong>：选完立即显示对错，随后自动进入下一题；5 秒内没有选择，按“超时未答”处理并自动进入下一题。</li>
+          <li><strong>连续 10 题答错（含超时未答）测试自动结束</strong>：说明当前级别明显超出你的词汇水平，继续测只会变成猜题、测不出真实水平，因此提前结束并给出定级说明。</li>
+          <li>进入答题会切换到<strong>全屏专注模式</strong>；提交后自动判分：每级答对 ≥16 题“通过”、12–15 题“边缘”、≤11 题“未过”，并生成定级、词汇量估算与<strong>错词回补清单</strong>。</li>
           <li>适用范围：初二、初三；初一期末可只做 Level 1–2。也适用于教师做班级词汇分层。</li>
         </ol>
 
@@ -132,7 +133,7 @@
             </ul>
             <p class="eq-answer">→ 选 D（正确含义不在选项中）</p>
           </div>
-          <p class="example-note">示例词不计入测试。全卷共 20 道“无正确含义题”（每级 4 道）。</p>
+          <p class="example-note">示例词不计入测试。全卷共 20 道“无正确含义题”（每级 4 道）；每题 5 秒，连续 10 题答错自动结束。</p>
         </div>
       </div>
 
@@ -144,7 +145,7 @@
           <div class="field field-static"><span>测试日期</span><output id="outDate">—</output></div>
           <div class="field field-static"><span>计时</span><output id="outTimer2">00:00</output></div>
         </div>
-        <p class="profile-hint">计时从<strong>开始答题</strong>起；超过 25 分钟结果仅作参考。答题进度自动保存在本机浏览器。</p>
+        <p class="profile-hint">开始答题即进入<strong>全屏专注模式</strong>；每题 5 秒，连续 10 题答错自动结束。进度自动保存在本机浏览器。</p>
       </div>
     </div>
   </section>
@@ -164,18 +165,19 @@
       <div class="start-panel" id="startPanel">
         <div class="start-main">
           <h3 id="startTitle">准备好了吗？</h3>
-          <p class="start-sub" id="startSub">共 100 题 · 每题 4 个选项 · 建议 12–18 分钟</p>
+          <p class="start-sub" id="startSub">共 100 题 · 每题 4 个选项 · 每题 5 秒自动进入下一题</p>
           <ul class="start-points">
-            <li><span>1</span>选出单词的正确中文含义，没有就选「以上都不正确」</li>
-            <li><span>2</span>可返回修改；提交后自动判分，不会边答边显示对错</li>
-            <li><span>3</span>答题进度保存在本机，关闭页面后可继续</li>
+            <li><span>1</span>选出单词的正确中文含义；没有正确含义就选「以上都不正确」</li>
+            <li><span>2</span>每题限时 5 秒，选完立即判对错，随后自动进入下一题</li>
+            <li><span>3</span>连续 10 题答错自动结束测试；请按真实水平作答，不要猜</li>
+            <li><span>4</span>答题会进入全屏专注模式；进度保存在本机，关闭页面可继续</li>
           </ul>
           <div class="start-actions">
-            <button class="btn btn-primary btn-lg" id="btnStart" type="button">开始答题</button>
+            <button class="btn btn-primary btn-lg" id="btnStart" type="button">开始答题（进入全屏）</button>
             <button class="btn btn-line btn-lg" id="btnResume" type="button" hidden>继续上次答题</button>
             <button class="btn btn-ghost btn-lg" id="btnRestart2" type="button" hidden>重新开始</button>
           </div>
-          <p class="start-note" id="startNote">建议在安静环境完成；本页不需要登录，成绩保存在本机浏览器。</p>
+          <p class="start-note" id="startNote">建议在安静环境完成；答题成绩保存在本机浏览器。</p>
         </div>
         <div class="start-side">
           <div class="start-mini">
@@ -183,12 +185,12 @@
             <span class="start-mini-v">3 个释义选项 + D「以上都不正确」</span>
           </div>
           <div class="start-mini">
-            <span class="start-mini-k">题量</span>
-            <span class="start-mini-v">5 级 × 20 题 = 100 题</span>
+            <span class="start-mini-k">节奏</span>
+            <span class="start-mini-v">每题 5 秒，选完立即判对错</span>
           </div>
           <div class="start-mini">
-            <span class="start-mini-k">判分</span>
-            <span class="start-mini-v">答对 1 分 / 错、未答 0 分</span>
+            <span class="start-mini-k">结束规则</span>
+            <span class="start-mini-v">连续 10 题答错自动结束</span>
           </div>
           <div class="start-mini">
             <span class="start-mini-k">定级</span>
@@ -197,48 +199,54 @@
         </div>
       </div>
 
-      <!-- 答题区 -->
-      <div class="runner" id="runner" hidden>
-        <div class="runner-main">
-          <article class="q-card" id="qCard">
-            <div class="q-head">
-              <span class="q-level" id="qLevel">Level 1 起步级</span>
-              <span class="q-count" id="qCount">第 1 / 100 题</span>
-              <span class="q-levelcount" id="qLevelCount">本级 1/20</span>
+      <!-- 全屏答题区 -->
+      <div class="test-stage" id="testStage" hidden>
+        <div class="stage-hud">
+          <div class="hud-left">
+            <span class="q-level" id="qLevel">Level 1 起步级</span>
+            <span class="q-count" id="qCount">第 1 / 100 题</span>
+            <span class="q-levelcount" id="qLevelCount">本级 1/20</span>
+          </div>
+          <div class="hud-center">
+            <div class="countdown" id="countdown" aria-label="剩余秒数">
+              <svg viewBox="0 0 46 46" aria-hidden="true">
+                <circle class="cd-bg" cx="23" cy="23" r="20"></circle>
+                <circle class="cd-fg" id="cdFg" cx="23" cy="23" r="20"></circle>
+              </svg>
+              <span id="cdNum">5</span>
             </div>
-            <div class="q-progress"><i id="qProgress"></i></div>
-            <p class="q-prompt">请选择下面单词的正确中文含义</p>
+          </div>
+          <div class="hud-right">
+            <span class="hud-timer" id="stageTimer">00:00</span>
+            <button class="btn btn-ghost btn-xs" id="btnFullscreen" type="button" title="切换全屏">全屏</button>
+            <button class="btn btn-ghost btn-xs" id="btnEndTest" type="button" title="结束并查看结果">结束测试</button>
+          </div>
+        </div>
+
+        <div class="stage-main">
+          <article class="q-card" id="qCard">
+            <p class="q-prompt">选出下面单词的正确中文含义</p>
             <div class="q-word-row">
               <strong class="q-word" id="qWord">grade</strong>
               <span class="q-pos" id="qPos">n.</span>
             </div>
             <div class="q-options" id="qOptions" role="group" aria-label="答案选项"></div>
-            <div class="q-actions">
-              <button class="btn btn-ghost btn-sm" id="btnPrev" type="button">上一题</button>
-              <button class="btn btn-ghost btn-sm" id="btnNext" type="button">下一题</button>
-              <span class="q-hint">键盘 1–4 选择 · ← → 切换</span>
-              <button class="btn btn-primary btn-sm" id="btnSubmit" type="button">提交答案</button>
-            </div>
+            <div class="feedback" id="feedback" hidden></div>
           </article>
         </div>
 
-        <aside class="sheet-panel">
-          <div class="sheet-sticky">
-            <div class="sheet-head">
-              <strong>答题卡</strong>
-              <span id="sheetAnswered">已答 0 / 100</span>
+        <div class="stage-foot">
+          <div class="stage-foot-top">
+            <div class="streak" id="streak">连续错误 <b id="streakNum">0</b> / 10</div>
+            <div class="stage-legend">
+              <span><i class="dot ok"></i>做对</span>
+              <span><i class="dot no"></i>做错</span>
+              <span><i class="dot none"></i>未测</span>
             </div>
-            <div class="sheet-levels" id="sheetLevels"><!-- JS --></div>
-            <div class="sheet-map" id="sheetMap" aria-label="题目导航"><!-- JS --></div>
-            <div class="sheet-legend">
-              <span><i class="dot done"></i>已答</span>
-              <span><i class="dot cur"></i>当前</span>
-              <span><i class="dot"></i>未答</span>
-            </div>
-            <button class="btn btn-primary btn-block" id="btnSubmit2" type="button">提交答案</button>
-            <p class="sheet-note">点题号可跳转；提交后自动判分并生成结果。</p>
           </div>
-        </aside>
+          <div class="stage-map" id="sheetMap" aria-label="答题进度"></div>
+          <p class="stage-note">每题 5 秒；连续 10 题答错将提前结束测试。</p>
+        </div>
       </div>
     </div>
   </section>
@@ -262,6 +270,15 @@
       </div>
 
       <div class="result-body" id="resultBody" hidden>
+        <!-- 提前结束提示 -->
+        <div class="early-banner" id="earlyBanner" hidden>
+          <div class="eb-icon" aria-hidden="true">!</div>
+          <div>
+            <strong>测试提前结束</strong>
+            <p id="earlyReason">连续 10 题答错（含超时未答），按规则提前结束测试。</p>
+            <p class="eb-note" id="earlyNote">说明：连续答错说明当前级别已明显超出你的词汇水平，继续测容易变成猜题，测不出真实词汇量。未做的题目记为“未测”，不参与答对计数。</p>
+          </div>
+        </div>
         <!-- 结果卡 -->
         <div class="result-card" id="resultCard">
           <div class="rc-head">
@@ -398,8 +415,10 @@
             <li><strong>100 题</strong>：5 级 × 20 题；每题 3 个释义选项 + 选项 D「以上都不正确」。</li>
             <li><strong>正常题 80 道</strong>：正确含义在 A/B/C 中（每级 16 道）。</li>
             <li><strong>无正确含义题 20 道</strong>：每级 4 道，正确含义不在选项中，正确答案为 D。</li>
-            <li><strong>判分</strong>：答对 1 分；选错、未答 0 分，答错不倒扣；每级满分 20 分。</li>
-            <li><strong>定级</strong>：从 Level 1 起逐级查看，取“连续通过”的最高级；每级答对 ≥16 题通过，12–15 题边缘，≤11 题未过。</li>
+            <li><strong>节奏</strong>：每题限时 5 秒，选完立即判对错并自动进入下一题；5 秒未选按“超时未答”处理。</li>
+            <li><strong>提前结束</strong>：连续 10 题答错（含超时未答）自动结束测试，用于避免弱基础学生靠猜题拉长测试、污染数据。</li>
+            <li><strong>判分</strong>：答对 1 分；选错、超时未答 0 分，答错不倒扣；每级满分 20 分。</li>
+            <li><strong>定级</strong>：从 Level 1 起逐级查看，取“连续通过”的最高级；每级答对 ≥16 题通过，12–15 题边缘，≤11 题未过。提前结束时，未测题目按 0 分计（视为未掌握）。</li>
           </ul>
         </div>
 
@@ -444,7 +463,7 @@
       <details class="panel collapsible">
         <summary><span>使用流程</span><small>教师 5 分钟上手</small></summary>
         <ol class="steps">
-          <li><strong>答题</strong>：网页答题或打印选择题卷；建议 12–18 分钟，统一开始、统一收卷。</li>
+          <li><strong>答题</strong>：网页答题（进入全屏、每题 5 秒、连续 10 题答错自动结束）或打印选择题卷统一收卷。</li>
           <li><strong>判分</strong>：网页版自动判分；纸卷按答案表批改，每题 1 分，答错不倒扣。</li>
           <li><strong>定级</strong>：每级 ≥16 题通过，取连续通过的最高级；用精确法或速查表估算词汇量。</li>
           <li><strong>回补</strong>：按“错词回补清单”和第五部分“回补重点”锁定回补级别，安排复测。</li>
