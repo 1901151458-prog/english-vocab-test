@@ -1,5 +1,5 @@
 /* =============================================================================
- * 初中英语词汇量快速定级测试单 · 交互逻辑（选择题版 v3.0）
+ * 初中英语词汇量快速定级测试单 · 交互逻辑（v4：5 秒/题 · 全屏 · 即时判对错 · 10 连错结束）
  * 依赖：data.js（VT_DATA）、logic.js（VT_LOGIC）；无第三方库
  * ========================================================================== */
 (function () {
@@ -11,21 +11,32 @@
   var items = logic.flatten(data);
   var meta = data.meta;
   var NONE_OPTION = meta.noneOption;
-  var STORAGE_KEY = "vt-vocab-placement-v3";
+  var STORAGE_KEY = "vt-vocab-placement-v4";
   var LETTERS = ["A", "B", "C", "D"];
+  var QUESTION_MS = 5000;      // 每题 5 秒
+  var FEEDBACK_MS = 1500;      // 反馈停留时间
+  var STREAK_LIMIT = 10;       // 连续 10 题答错结束
+  var CD_CIRC = 2 * Math.PI * 20;
 
   /* ------------------------------ 状态 ------------------------------ */
   var state = {
-    answers: {},        // { 全局题号: 0–3 }
+    answers: {},          // { 全局题号: 0–3 | -1(超时) }
     current: 0,
-    startedAt: null,    // ms
-    elapsed: 0,         // ms
+    startedAt: null,
+    elapsed: 0,
     timerId: null,
     finished: false,
+    earlyStop: false,
+    completedAll: false,
+    stopLevel: 0,
+    streak: 0,
+    locked: false,
+    phase: "idle",
+    countdownId: null,
+    countdownStart: 0,
+    nextTimer: null,
     profile: { name: "", cls: "" },
-    history: [],
-    advanceTimer: null,
-    lastToastG: -1
+    history: []
   };
 
   var els = {};
@@ -63,27 +74,31 @@
     toast._tid = setTimeout(function () { t.classList.remove("is-show"); }, 2400);
   }
 
-  function answeredCount() {
-    return Object.keys(state.answers).length;
+  function answeredCount() { return Object.keys(state.answers).length; }
+  function isAnswered(g) { return Object.prototype.hasOwnProperty.call(state.answers, g); }
+
+  function statusOf(g) {
+    if (!isAnswered(g)) return "untested";
+    var c = state.answers[g];
+    if (c === -1) return "timeout";
+    return c === logic.answerOf(items[g]) ? "correct" : "wrong";
   }
 
-  function isAnswered(g) {
-    return Object.prototype.hasOwnProperty.call(state.answers, g);
+  function estimateLabel(result) {
+    if (result.estimate < 100) return "不足 100 词";
+    return "约 " + result.estimate + " 词";
   }
 
-  function letterOf(choice) {
-    return choice === 3 ? "D" : LETTERS[choice];
+  function itemAnswerText(item) {
+    if (item.ans === -1) return "D. " + NONE_OPTION;
+    return LETTERS[item.ans] + ". " + item.opts[item.ans];
   }
 
   function choiceText(item, choice) {
-    if (choice === null || choice === undefined) return "未作答";
+    if (choice === null || choice === undefined) return "未测";
+    if (choice === -1) return "超时未答";
     if (choice === 3) return "D. " + NONE_OPTION;
     return LETTERS[choice] + ". " + item.opts[choice];
-  }
-
-  function answerText(item) {
-    if (item.ans === -1) return "D. " + NONE_OPTION;
-    return LETTERS[item.ans] + ". " + item.opts[item.ans];
   }
 
   /* ------------------------------ 存储 ------------------------------ */
@@ -95,6 +110,9 @@
         startedAt: state.startedAt,
         elapsed: state.elapsed,
         finished: state.finished,
+        earlyStop: state.earlyStop,
+        completedAll: state.completedAll,
+        stopLevel: state.stopLevel,
         profile: state.profile,
         history: state.history,
         savedAt: Date.now()
@@ -112,12 +130,13 @@
       state.answers = obj.answers && typeof obj.answers === "object" ? obj.answers : {};
       state.current = Number.isFinite(obj.current) ? Math.min(items.length - 1, Math.max(0, obj.current)) : 0;
       state.finished = !!obj.finished;
+      state.earlyStop = !!obj.earlyStop;
+      state.completedAll = !!obj.completedAll;
+      state.stopLevel = Number(obj.stopLevel) || 0;
       state.elapsed = Number(obj.elapsed) || 0;
       state.profile = obj.profile || { name: "", cls: "" };
       state.history = Array.isArray(obj.history) ? obj.history : [];
-      if (obj.startedAt && !state.finished) {
-        state.startedAt = Date.now() - state.elapsed;
-      }
+      if (obj.startedAt && !state.finished) state.startedAt = Date.now() - state.elapsed;
     } catch (e) { /* 数据损坏则忽略 */ }
   }
 
@@ -143,10 +162,41 @@
     var text = fmtTime(state.elapsed);
     if (els.timerText) els.timerText.textContent = text;
     if (els.outTimer2) els.outTimer2.textContent = text;
+    if (els.stageTimer) els.stageTimer.textContent = text;
     if (els.timer) {
-      els.timer.classList.toggle("is-warn", state.elapsed > 18 * 60000 && state.elapsed <= 25 * 60000);
-      els.timer.classList.toggle("is-over", state.elapsed > 25 * 60000);
+      els.timer.classList.toggle("is-warn", state.elapsed > 12 * 60000 && state.elapsed <= 18 * 60000);
+      els.timer.classList.toggle("is-over", state.elapsed > 18 * 60000);
     }
+  }
+
+  /* ------------------------------ 全屏 ------------------------------ */
+  function isFullscreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+
+  function requestFullscreen() {
+    var el = document.documentElement;
+    var fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    if (!fn) { toast("当前浏览器不支持全屏，已进入专注模式"); return; }
+    try {
+      var p = fn.call(el);
+      if (p && p.catch) p.catch(function () { toast("浏览器未允许全屏，已进入专注模式"); });
+    } catch (e) { /* 忽略 */ }
+  }
+
+  function exitFullscreen() {
+    if (!isFullscreen()) return;
+    var fn = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+    if (!fn) return;
+    try {
+      var p = fn.call(document);
+      if (p && p.catch) p.catch(function () {});
+    } catch (e) { /* 忽略 */ }
+  }
+
+  function syncFullscreenBtn() {
+    if (!els.btnFullscreen) return;
+    els.btnFullscreen.textContent = isFullscreen() ? "退出全屏" : "全屏";
   }
 
   /* ------------------------------ 首屏五级阶梯 ------------------------------ */
@@ -162,64 +212,36 @@
     }).join("");
   }
 
-  /* ------------------------------ 答题卡 ------------------------------ */
-  function renderSheet() {
-    if (els.sheetLevels) {
-      els.sheetLevels.innerHTML = levels.map(function (lv) {
-        return '<div class="sheet-level" style="--lv:' + lv.color + '">' +
-          '<span class="sl-name">L' + lv.id + "</span>" +
-          '<span class="sl-bar"><i data-slbar="' + lv.id + '"></i></span>' +
-          '<span class="sl-count" data-slcount="' + lv.id + '">0/20</span>' +
-          "</div>";
-      }).join("");
-    }
-
-    if (els.sheetMap) {
-      var html = "";
-      levels.forEach(function (lv, li) {
-        html += '<div class="sheet-group" style="--lv:' + lv.color + '">' +
-          '<span class="sg-label">L' + lv.id + " " + lv.name + "</span>" +
-          '<div class="sg-cells">';
-        for (var i = 0; i < lv.words.length; i++) {
-          var g = li * 20 + i;
-          html += '<button type="button" class="sheet-cell" data-g="' + g + '" aria-label="第 ' + (g + 1) + ' 题">' + (i + 1) + "</button>";
-        }
-        html += "</div></div>";
-      });
-      els.sheetMap.innerHTML = html;
-    }
+  /* ------------------------------ 答题进度图 ------------------------------ */
+  function renderProgressMap() {
+    if (!els.sheetMap) return;
+    var html = "";
+    levels.forEach(function (lv, li) {
+      html += '<div class="stage-group" style="--lv:' + lv.color + '">' +
+        '<span class="sgg-label">L' + lv.id + "</span>" +
+        '<div class="sgg-cells">';
+      for (var i = 0; i < 20; i++) {
+        var g = li * 20 + i;
+        html += '<span class="stage-cell" data-g="' + g + '" title="第 ' + (g + 1) + ' 题">' + (i + 1) + "</span>";
+      }
+      html += "</div></div>";
+    });
+    els.sheetMap.innerHTML = html;
+    updateProgressMap();
   }
 
-  function updateSheet() {
-    var answered = answeredCount();
-    if (els.sheetAnswered) els.sheetAnswered.textContent = "已答 " + answered + " / " + items.length;
-
-    levels.forEach(function (lv, li) {
-      var n = 0;
-      for (var i = 0; i < 20; i++) {
-        if (isAnswered(li * 20 + i)) n++;
-      }
-      var bar = document.querySelector('[data-slbar="' + lv.id + '"]');
-      var cnt = document.querySelector('[data-slcount="' + lv.id + '"]');
-      if (bar) bar.style.width = (n / 20 * 100) + "%";
-      if (cnt) cnt.textContent = n + "/20";
+  function updateProgressMap() {
+    if (!els.sheetMap) return;
+    $$(".stage-cell", els.sheetMap).forEach(function (b) {
+      var g = Number(b.getAttribute("data-g"));
+      var st = statusOf(g);
+      b.className = "stage-cell is-" + st +
+        (g === state.current && state.phase !== "finished" ? " is-current" : "");
     });
-
-    if (els.sheetMap) {
-      $$(".sheet-cell", els.sheetMap).forEach(function (b) {
-        var g = Number(b.getAttribute("data-g"));
-        b.classList.toggle("is-done", isAnswered(g));
-        b.classList.toggle("is-current", g === state.current && !state.finished);
-      });
-    }
-    if (els.miniCount) els.miniCount.textContent = answered;
-    if (els.miniLevel) {
-      els.miniLevel.textContent = state.finished
-        ? (scoreCache ? scoreCache.result.label : "已提交")
-        : "Level " + items[state.current].levelId + " " + items[state.current].levelName;
-    }
-    if (els.miniJump) {
-      els.miniJump.textContent = state.finished ? "看结果" : "答题";
+    if (els.streakNum) els.streakNum.textContent = state.streak;
+    if (els.streak) {
+      els.streak.classList.toggle("is-warn", state.streak >= 7);
+      els.streak.classList.toggle("is-danger", state.streak >= 9);
     }
   }
 
@@ -230,12 +252,13 @@
     var hasProgress = answered > 0 && !state.finished;
 
     els.startPanel.hidden = false;
-    els.runner.hidden = true;
+    els.testStage.hidden = true;
+    document.body.classList.remove("is-testing");
 
     if (state.finished) {
-      els.startTitle.textContent = "本次测试已提交";
+      els.startTitle.textContent = "本次测试已结束";
       els.startSub.textContent = scoreCache
-        ? "答对 " + scoreCache.total.correct + " / 100 · 定级 " + scoreCache.result.label
+        ? (state.earlyStop ? "提前结束 · " : "") + "答对 " + scoreCache.total.correct + " / 100 · 定级 " + scoreCache.result.label
         : "已完成";
       els.btnStart.hidden = true;
       els.btnResume.hidden = false;
@@ -247,16 +270,16 @@
       els.startSub.textContent = "已答 " + answered + " / 100 题 · 已用 " + fmtTime(state.elapsed);
       els.btnStart.hidden = true;
       els.btnResume.hidden = false;
-      els.btnResume.textContent = "继续答题";
+      els.btnResume.textContent = "继续答题（进入全屏）";
       els.btnRestart2.hidden = false;
       els.startNote.textContent = "进度保存在本机浏览器；也可以重新开始一套新的。";
     } else {
       els.startTitle.textContent = "准备好了吗？";
-      els.startSub.textContent = "共 100 题 · 每题 4 个选项 · 建议 12–18 分钟";
+      els.startSub.textContent = "共 100 题 · 每题 4 个选项 · 每题 5 秒自动进入下一题";
       els.btnStart.hidden = false;
       els.btnResume.hidden = true;
       els.btnRestart2.hidden = true;
-      els.startNote.textContent = "建议在安静环境完成；本页不需要登录，成绩保存在本机浏览器。";
+      els.startNote.textContent = "开始后进入全屏专注模式；连续 10 题答错会自动结束测试。";
     }
   }
 
@@ -264,6 +287,8 @@
   function renderQuestion() {
     var item = items[state.current];
     if (!item) return;
+    state.phase = "testing";
+    state.locked = false;
 
     if (els.qLevel) {
       els.qLevel.textContent = "Level " + item.levelId + " " + item.levelName;
@@ -271,75 +296,154 @@
     }
     if (els.qCount) els.qCount.textContent = "第 " + (state.current + 1) + " / " + items.length + " 题";
     if (els.qLevelCount) els.qLevelCount.textContent = "本级 " + item.n + "/20";
-    if (els.qProgress) els.qProgress.style.width = ((state.current + 1) / items.length * 100) + "%";
     if (els.qWord) els.qWord.textContent = item.w;
     if (els.qPos) els.qPos.textContent = item.pos;
+    if (els.feedback) {
+      els.feedback.hidden = true;
+      els.feedback.className = "feedback";
+      els.feedback.textContent = "";
+    }
 
     var html = "";
     for (var i = 0; i < 4; i++) {
-      var text = i === 3 ? NONE_OPTION : item.opts[i];
-      var selected = state.answers[state.current] === i;
       html += '<button type="button" class="opt' + (i === 3 ? " opt-none" : "") +
-        '" data-choice="' + i + '" aria-pressed="' + (selected ? "true" : "false") + '">' +
+        '" data-choice="' + i + '">' +
         '<span class="opt-letter">' + LETTERS[i] + "</span>" +
-        '<span class="opt-text">' + text + "</span>" +
+        '<span class="opt-text">' + (i === 3 ? NONE_OPTION : item.opts[i]) + "</span>" +
         "</button>";
     }
     els.qOptions.innerHTML = html;
+    $$(".opt", els.qOptions).forEach(function (b) {
+      b.addEventListener("click", function () { selectChoice(Number(b.getAttribute("data-choice"))); });
+    });
 
-    if (els.btnPrev) els.btnPrev.disabled = state.current === 0;
-    if (els.btnNext) {
-      els.btnNext.disabled = state.current >= items.length - 1;
-      els.btnNext.textContent = state.current >= items.length - 1 ? "已是最后一题" : "下一题";
+    updateProgressMap();
+    startCountdown();
+  }
+
+  /* ------------------------------ 5 秒倒计时 ------------------------------ */
+  function startCountdown() {
+    clearInterval(state.countdownId);
+    state.countdownStart = Date.now();
+    updateCountdown(QUESTION_MS);
+    state.countdownId = setInterval(function () {
+      var left = QUESTION_MS - (Date.now() - state.countdownStart);
+      if (left <= 0) {
+        clearInterval(state.countdownId);
+        state.countdownId = null;
+        updateCountdown(0);
+        handleTimeout();
+        return;
+      }
+      updateCountdown(left);
+    }, 80);
+  }
+
+  function updateCountdown(left) {
+    var sec = Math.max(0, Math.ceil(left / 1000));
+    var ratio = Math.max(0, Math.min(1, left / QUESTION_MS));
+    if (els.cdNum) els.cdNum.textContent = sec;
+    if (els.cdFg) {
+      els.cdFg.style.strokeDasharray = CD_CIRC;
+      els.cdFg.style.strokeDashoffset = CD_CIRC * (1 - ratio);
     }
-    updateSheet();
+    if (els.countdown) {
+      els.countdown.classList.toggle("is-urgent", sec <= 2 && state.phase === "testing");
+      els.countdown.classList.toggle("is-paused", state.phase !== "testing");
+    }
+  }
+
+  function stopCountdown() {
+    clearInterval(state.countdownId);
+    state.countdownId = null;
+  }
+
+  /* ------------------------------ 判题与反馈 ------------------------------ */
+  function showFeedback(pkg) {
+    var item = pkg.item;
+    var answerIdx = logic.answerOf(item);
+    var correct = pkg.state === "correct";
+
+    $$(".opt", els.qOptions).forEach(function (b) {
+      var idx = Number(b.getAttribute("data-choice"));
+      b.classList.remove("is-right", "is-wrong");
+      b.disabled = true;
+      if (idx === answerIdx) b.classList.add("is-right");
+      if (!correct && idx === pkg.choice) b.classList.add("is-wrong");
+    });
+
+    if (els.feedback) {
+      els.feedback.hidden = false;
+      els.feedback.className = "feedback " + (correct ? "is-correct" : pkg.timeout ? "is-timeout" : "is-wrong");
+      els.feedback.innerHTML = correct
+        ? '<b>✓ 正确</b><span>你是对的</span>'
+        : '<b>' + (pkg.timeout ? "⏱ 超时未答" : "✗ 答错") + "</b><span>正确答案：" + itemAnswerText(item) +
+          (item.ans === -1 ? '<i>（标准释义：' + item.meaning + "）</i>" : "") + "</span>";
+    }
+    if (els.cdNum) els.cdNum.textContent = "–";
+    if (els.countdown) els.countdown.classList.add("is-paused");
+  }
+
+  function scheduleNext(delay, endAfter) {
+    clearTimeout(state.nextTimer);
+    state.nextTimer = setTimeout(function () {
+      if (endAfter) { finishQuiz(true); return; }
+      if (state.current >= items.length - 1) { finishQuiz(false); return; }
+      state.current += 1;
+      saveState();
+      renderQuestion();
+    }, delay);
   }
 
   function selectChoice(choice) {
-    if (state.finished) return;
-    var g = state.current;
-    var wasAnswered = isAnswered(g);
-    state.answers[g] = choice;
-    if (!state.startedAt) state.startedAt = Date.now() - state.elapsed;
-    startTimer();
+    if (state.locked || state.phase !== "testing" || state.finished) return;
+    state.locked = true;
+    stopCountdown();
+
+    var item = items[state.current];
+    var answerIdx = logic.answerOf(item);
+    var st = choice === answerIdx ? "correct" : "wrong";
+    state.answers[state.current] = choice;
+    if (st === "correct") state.streak = 0;
+    else state.streak += 1;
+    state.stopLevel = item.levelId;
+
+    showFeedback({ item: item, state: st, choice: choice, timeout: false });
+    updateProgressMap();
     saveState();
 
-    $$(".opt", els.qOptions).forEach(function (b) {
-      b.setAttribute("aria-pressed", Number(b.getAttribute("data-choice")) === choice ? "true" : "false");
-    });
-    updateSheet();
-
-    if (!wasAnswered) {
-      clearTimeout(state.advanceTimer);
-      if (g < items.length - 1) {
-        state.advanceTimer = setTimeout(function () {
-          if (state.current === g && !state.finished) {
-            state.current = g + 1;
-            saveState();
-            renderQuestion();
-          }
-        }, 260);
-      } else if (state.lastToastG !== g) {
-        state.lastToastG = g;
-        toast("最后一题已作答，点“提交答案”生成结果");
-      }
-    }
+    var end = state.streak >= STREAK_LIMIT;
+    scheduleNext(FEEDBACK_MS + 150, end);
   }
 
-  function goTo(g) {
-    if (state.finished) return;
-    clearTimeout(state.advanceTimer);
-    state.current = Math.min(items.length - 1, Math.max(0, g));
+  function handleTimeout() {
+    if (state.locked || state.phase !== "testing" || state.finished) return;
+    state.locked = true;
+    var item = items[state.current];
+    state.answers[state.current] = -1;
+    state.streak += 1;
+    state.stopLevel = item.levelId;
+    showFeedback({ item: item, state: "timeout", choice: -1, timeout: true });
+    updateProgressMap();
     saveState();
-    renderQuestion();
+    var end = state.streak >= STREAK_LIMIT;
+    scheduleNext(FEEDBACK_MS + 250, end);
   }
 
   /* ------------------------------ 开始 / 继续 / 重置 ------------------------------ */
-  function showRunner() {
+  function enterTestMode() {
+    document.body.classList.add("is-testing");
     els.startPanel.hidden = true;
-    els.runner.hidden = false;
+    els.testStage.hidden = false;
+    requestFullscreen();
+    state.phase = "testing";
+    state.locked = false;
+    state.streak = 0;
+    if (!state.startedAt) state.startedAt = Date.now();
+    startTimer();
     renderQuestion();
-    updateSheet();
+    updateProgressMap();
+    syncFullscreenBtn();
   }
 
   function startFresh() {
@@ -351,17 +455,17 @@
     state.startedAt = Date.now();
     state.elapsed = 0;
     state.finished = false;
-    state.lastToastG = -1;
-    clearTimeout(state.advanceTimer);
+    state.earlyStop = false;
+    state.completedAll = false;
+    state.stopLevel = 0;
+    state.streak = 0;
+    clearTimeout(state.nextTimer);
+    clearInterval(state.countdownId);
     stopTimer();
-    startTimer();
     saveState();
     scoreCache = null;
-    renderLevelTable(null);
-    showRunner();
-    toast("开始答题，计时已启动");
-    var sec = document.getElementById("test");
-    if (sec) sec.scrollIntoView({ behavior: "smooth", block: "start" });
+    enterTestMode();
+    toast("答题开始：每题 5 秒，选完自动进入下一题");
   }
 
   function resumeQuiz() {
@@ -370,61 +474,79 @@
       if (r) r.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
-    startTimer();
-    showRunner();
+    var idx = state.current;
+    while (idx < items.length && isAnswered(idx)) idx++;
+    state.current = Math.min(items.length - 1, idx);
+    enterTestMode();
     var sec = document.getElementById("test");
-    if (sec) sec.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (sec) sec.scrollIntoView({ block: "start" });
   }
 
   function restartQuiz() {
     var msg = state.finished ? "确定重新开始一套新的测试吗？当前结果将被清空（复测记录保留）。" : "确定重新开始吗？已答的题目会被清空。";
     if (!window.confirm(msg)) return;
+    exitFullscreen();
     state.answers = {};
     state.current = 0;
     state.startedAt = null;
     state.elapsed = 0;
     state.finished = false;
-    state.lastToastG = -1;
-    scoreCache = null;
-    clearTimeout(state.advanceTimer);
+    state.earlyStop = false;
+    state.completedAll = false;
+    state.stopLevel = 0;
+    state.streak = 0;
+    state.phase = "idle";
+    clearTimeout(state.nextTimer);
+    clearInterval(state.countdownId);
     stopTimer();
     updateTimer();
     saveState();
+    document.body.classList.remove("is-testing");
     renderStartPanel();
     renderResult();
     renderLevelTable(null);
-    updateSheet();
     var sec = document.getElementById("test");
     if (sec) sec.scrollIntoView({ behavior: "smooth", block: "start" });
     toast("已清空，可重新开始");
   }
 
-  /* ------------------------------ 提交 ------------------------------ */
-  function submit() {
-    if (state.finished) {
-      var r0 = document.getElementById("result");
-      if (r0) r0.scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
-    }
-    var answered = answeredCount();
-    var blank = items.length - answered;
-    if (blank > 0) {
-      var ok = window.confirm("还有 " + blank + " 题未作答，未答按 0 分计。确定提交吗？");
-      if (!ok) return;
-    }
-    if (state.startedAt) state.elapsed = Date.now() - state.startedAt;
-    stopTimer();
+  /* ------------------------------ 结束 ------------------------------ */
+  function finishQuiz(early) {
+    if (state.finished) return;
     state.finished = true;
-    clearTimeout(state.advanceTimer);
+    state.earlyStop = !!early;
+    state.completedAll = !early && answeredCount() >= items.length;
+    if (early) state.streak = STREAK_LIMIT;
+    state.phase = "finished";
+    state.locked = true;
+    if (state.startedAt) state.elapsed = Date.now() - state.startedAt;
+    clearTimeout(state.nextTimer);
+    clearInterval(state.countdownId);
+    stopTimer();
+    exitFullscreen();
+    document.body.classList.remove("is-testing");
     saveState();
     scoreCache = logic.score(state.answers, data);
     renderResult();
     renderStartPanel();
     updateTimer();
-    updateSheet();
-    toast("已提交，结果已生成");
+    toast(early ? "连续 10 题答错，测试已提前结束" : "测试已结束，结果已生成");
     var r = document.getElementById("result");
     if (r) r.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function submitNow() {
+    if (state.finished) {
+      var r0 = document.getElementById("result");
+      if (r0) r0.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    var blank = items.length - answeredCount();
+    var ok = window.confirm(blank > 0
+      ? "还有 " + blank + " 题未测，未测按 0 分计。确定结束测试吗？"
+      : "确定结束测试并查看结果吗？");
+    if (!ok) return;
+    finishQuiz(false);
   }
 
   /* ------------------------------ 结果渲染 ------------------------------ */
@@ -446,10 +568,10 @@
   function timeNote(ms) {
     var min = ms / 60000;
     if (ms <= 0) return "尚未开始计时";
-    if (min > 25) return "超过 25 分钟，结果仅供参考，建议重测";
-    if (min > 18) return "略超过 18 分钟，可留意是否犹豫过久";
-    if (min < 7) return "用时较短，建议确认没有随意作答";
-    return "在 12–18 分钟建议区间内";
+    if (min > 18) return "明显超过预期用时，结果仅供参考";
+    if (min > 12) return "用时略长";
+    if (min < 1) return "用时很短，说明作答非常迅速";
+    return "用时正常（每题 5 秒节奏）";
   }
 
   function renderResult() {
@@ -458,6 +580,7 @@
     if (!state.finished || !scoreCache) {
       if (body) body.hidden = true;
       if (empty) empty.hidden = false;
+      if (els.earlyBanner) els.earlyBanner.hidden = true;
       return;
     }
     if (body) body.hidden = false;
@@ -466,22 +589,44 @@
     var sc = scoreCache;
     var result = sc.result;
 
+    if (els.earlyBanner) {
+      els.earlyBanner.hidden = !state.earlyStop;
+      if (state.earlyStop) {
+        if (els.earlyReason) {
+          els.earlyReason.textContent = "连续 " + STREAK_LIMIT + " 题答错（含超时未答），测试在 Level " + state.stopLevel +
+            " 第 " + (state.current % 20 + 1) + " 题处提前结束。";
+        }
+        if (els.earlyNote) {
+          els.earlyNote.textContent = "为什么提前结束：连续答错说明当前级别已明显超出你的词汇水平，继续测容易变成猜题，既测不出真实词汇量，也会浪费时间。未测题目记为“未测”，不参与答对计数；定级按已测部分计算（未测级别按 0 分计）。建议从 " + result.recommend + " 开始系统回补。";
+        }
+      }
+    }
+
     els.resLevel.textContent = result.label;
     els.resSub.textContent = resultSub(result);
     var badge = els.resBadge;
     badge.textContent = result.code === "edge" ? "边缘" : result.code === "below" ? "未达" : result.code === "perfect" ? "满级" : "通过";
     badge.className = "rc-badge" + (result.code === "edge" ? " is-edge" : result.code === "below" ? " is-below" : "");
 
-    els.resEstimate.textContent = result.estimateText;
+    els.resEstimate.textContent = estimateLabel(result);
     els.resRange.textContent = "区间 " + result.rangeText;
     els.resCorrect.textContent = sc.total.correct + " / 100";
-    els.resAccuracy.textContent = "全卷正确率 " + sc.total.correct + "% · 未答 " + sc.total.blank + " 题";
+    els.resAccuracy.textContent = "已答 " + sc.total.answered + " 题 · 正确率 " + Math.round(sc.accuracy * 100) + "%";
     els.resTime.textContent = fmtTime(state.elapsed);
     els.resTimeNote.textContent = timeNote(state.elapsed);
     els.resRecommend.textContent = result.recommend;
-    els.resStop.textContent = result.code === "below" ? "止于第 1 级" : result.code === "perfect" ? "五级全过" : "止于第 " + (result.highest + 1) + " 级";
-    els.resMeta.textContent = "误选 " + sc.total.wrong + " 题 · 未答 " + sc.total.blank + " 题 · “无正确含义”题答对 " +
-      sc.trap.correct + " / " + sc.trap.total;
+    els.resStop.textContent = state.earlyStop
+      ? "提前结束（Level " + state.stopLevel + "）"
+      : (result.code === "below" ? "止于第 1 级" : result.code === "perfect" ? "五级全过" : "止于第 " + (result.highest + 1) + " 级");
+
+    var parts = [
+      "正确 " + sc.total.correct,
+      "错误 " + sc.total.wrong,
+      "超时未答 " + sc.total.timeout,
+      "未测 " + sc.total.blank,
+      "“无正确含义”题答对 " + sc.trap.correct + " / " + sc.trap.total
+    ];
+    els.resMeta.textContent = parts.join(" · ");
 
     var adviceLv = levels[Math.min(4, Math.max(0, result.levelIndex - 1))] || levels[0];
     els.resAdvice.textContent = result.code === "below"
@@ -506,11 +651,11 @@
     var html = levels.map(function (lv, li) {
       var cells = "";
       for (var i = 0; i < 20; i++) {
-        var d = sc.details[li * 20 + i];
-        var st = d.state;
+        var g = li * 20 + i;
+        var st = statusOf(g);
         var cls = "dist-cell is-" + st + (i > 0 && i % 5 === 0 ? " is-sep" : "");
-        cells += '<span class="' + cls + '" title="L' + lv.id + " 第 " + (i + 1) + " 题：" +
-          (st === "correct" ? "答对" : st === "wrong" ? "答错" : "未答") + '"></span>';
+        var txt = st === "correct" ? "答对" : st === "wrong" ? "答错" : st === "timeout" ? "超时" : "未测";
+        cells += '<span class="' + cls + '" title="L' + lv.id + " 第 " + (i + 1) + " 题：" + txt + '"></span>';
       }
       return '<div class="dist-row" style="--lv:' + lv.color + '">' +
         '<span class="dr-label">L' + lv.id + "</span>" +
@@ -522,7 +667,7 @@
     if (els.distLegend) {
       els.distLegend.innerHTML = sc.perLevel.map(function (p) {
         return '<li style="--lv:' + p.color + '"><span class="chip"></span>L' + p.id + " " + p.name +
-          "：对 " + p.correct + " · 错 " + p.wrong + " · 未答 " + p.blank + "</li>";
+          "：对 " + p.correct + " · 错 " + p.wrong + " · 超时 " + p.timeout + " · 未测 " + p.blank + "</li>";
       }).join("");
     }
   }
@@ -565,7 +710,7 @@
     var labelX = Math.min(W - padR - 40, Math.max(padL + 40, xe));
     p.push('<line x1="' + xe + '" y1="' + axisY + '" x2="' + xe + '" y2="' + (axisY - 40) + '" stroke="#C0553F" stroke-width="1.8"/>');
     p.push('<polygon points="' + xe + "," + (axisY - 40) + " " + (xe - 5) + "," + (axisY - 50) + " " + (xe + 5) + "," + (axisY - 50) + '" fill="#C0553F"/>');
-    p.push('<text x="' + labelX + '" y="' + (axisY - 56) + '" text-anchor="middle" font-size="11" font-weight="700" fill="#C0553F">▲ 约 ' + result.estimate + " 词</text>");
+    p.push('<text x="' + labelX + '" y="' + (axisY - 56) + '" text-anchor="middle" font-size="11" font-weight="700" fill="#C0553F">▲ ' + estimateLabel(result) + "</text>");
     p.push('<text x="' + (W - padR) + '" y="' + (H - 4) + '" text-anchor="end" font-size="9.5" fill="#8BA0B1">累计词汇量（词）</text>');
 
     return '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="词汇量刻度尺：估算 ' + result.estimate + ' 词">' + p.join("") + "</svg>";
@@ -573,9 +718,9 @@
 
   function renderWrongList(sc) {
     if (!els.wrongList) return;
-    var bad = sc.details.filter(function (d) { return d.state !== "correct"; });
+    var bad = sc.details.filter(function (d) { return d.state === "wrong" || d.state === "timeout"; });
     if (!bad.length) {
-      els.wrongList.innerHTML = '<div class="wrong-empty">本卷全部答对，没有需要回补的词。<br>下一阶段可保持每周 2 次阅读 + 1 次写作，向高中衔接词拓展。</div>';
+      els.wrongList.innerHTML = '<div class="wrong-empty">已测题目全部答对，没有需要回补的词。<br>下一阶段可保持每周 2 次阅读 + 1 次写作，向高中衔接词拓展。</div>';
       return;
     }
     var html = "";
@@ -590,9 +735,9 @@
         html += '<div class="wrong-item">' +
           '<span class="wi-word">' + d.w + ' <i>' + d.pos + "</i></span>" +
           '<span class="wi-meaning">' + d.meaning + "</span>" +
-          '<span class="wi-state ' + (d.state === "blank" ? "is-blank" : "is-wrong") + '">' +
-          (d.state === "blank" ? "未作答" : "你选了 " + choiceText(d, d.choice)) + "</span>" +
-          '<span class="wi-answer">正确：' + answerText(d) + "</span>" +
+          '<span class="wi-state ' + (d.state === "timeout" ? "is-blank" : "is-wrong") + '">' +
+          (d.state === "timeout" ? "超时未答" : "你选了 " + choiceText(d, d.choice)) + "</span>" +
+          '<span class="wi-answer">正确：' + itemAnswerText(d) + "</span>" +
           "</div>";
       });
       html += "</div></div>";
@@ -609,15 +754,18 @@
         '<div class="table-wrap"><table class="table review-table"><thead><tr>' +
         "<th>#</th><th>单词</th><th>你的选择</th><th>正确答案</th><th>结果</th></tr></thead><tbody>";
       for (var i = 0; i < 20; i++) {
-        var d = sc.details[li * 20 + i];
-        var mark = d.state === "correct" ? '<span class="mk ok">✓ 对</span>'
-          : d.state === "wrong" ? '<span class="mk no">✗ 错</span>'
-            : '<span class="mk blank">— 未答</span>';
+        var g = li * 20 + i;
+        var d = sc.details[g];
+        var st = statusOf(g);
+        var mark = st === "correct" ? '<span class="mk ok">✓ 对</span>'
+          : st === "wrong" ? '<span class="mk no">✗ 错</span>'
+            : st === "timeout" ? '<span class="mk timeout">⏱ 超时</span>'
+              : '<span class="mk blank">— 未测</span>';
         html += "<tr>" +
           "<td>" + d.n + "</td>" +
           "<td><b>" + d.w + "</b> <small>" + d.pos + "</small></td>" +
           "<td>" + choiceText(d, d.choice) + "</td>" +
-          "<td>" + answerText(d) + "</td>" +
+          "<td>" + itemAnswerText(d) + "</td>" +
           "<td>" + mark + "</td>" +
           "</tr>";
       }
@@ -687,7 +835,7 @@
     var tbody = els.historyTable.querySelector("tbody");
     var list = state.history.slice().sort(function (a, b) { return a.ts - b.ts; });
     if (!list.length) {
-      tbody.innerHTML = '<tr class="empty"><td colspan="8">还没有保存记录。提交后点“保存本次记录”，即可在这里追踪变化。</td></tr>';
+      tbody.innerHTML = '<tr class="empty"><td colspan="8">还没有保存记录。测试结束后点“保存本次记录”，即可在这里追踪变化。</td></tr>';
       if (els.historyEmpty) els.historyEmpty.hidden = true;
       return;
     }
@@ -705,7 +853,7 @@
         "<td>" + escapeHtml(who) + "</td>" +
         "<td>" + fmtTime(h.elapsed || 0) + "</td>" +
         "<td>" + h.correct + " / 100</td>" +
-        "<td>" + escapeHtml(h.label) + "</td>" +
+        "<td>" + escapeHtml(h.label) + (h.early ? "（提前结束）" : "") + "</td>" +
         "<td>约 " + h.estimate + " 词</td>" +
         "<td>" + delta + "</td>" +
         "</tr>";
@@ -713,7 +861,7 @@
   }
 
   function saveResult() {
-    if (!scoreCache) { toast("提交答案后才能保存结果"); return; }
+    if (!scoreCache) { toast("结束测试后才能保存结果"); return; }
     state.history.push({
       ts: Date.now(),
       name: state.profile.name,
@@ -721,7 +869,8 @@
       elapsed: state.elapsed,
       correct: scoreCache.total.correct,
       label: scoreCache.result.label,
-      estimate: scoreCache.result.estimate
+      estimate: scoreCache.result.estimate,
+      early: state.earlyStop
     });
     if (state.history.length > 24) state.history = state.history.slice(-24);
     saveState();
@@ -734,18 +883,20 @@
     if (!scoreCache) return "";
     var sc = scoreCache;
     var who = [state.profile.name, state.profile.cls].filter(Boolean).join(" / ") || "未填写";
-    return [
-      "【初中英语词汇量快速定级测试单 · 选择题版】",
+    var lines = [
+      "【初中英语词汇量快速定级测试单 · 选择题版（5 秒/题）】",
       "姓名/班级：" + who,
-      "答对题数：" + sc.total.correct + " / 100（正确率 " + sc.total.correct + "%）",
+      "答对题数：" + sc.total.correct + " / 100（已答 " + sc.total.answered + " 题，正确率 " + Math.round(sc.accuracy * 100) + "%）",
       "定级：" + sc.result.label,
-      "估算词汇量：约 " + sc.result.estimate + " 词（区间 " + sc.result.rangeText + "）",
-      "用时：" + fmtTime(state.elapsed) + "（" + timeNote(state.elapsed) + "）",
-      "误选：" + sc.total.wrong + " 题 · 未答：" + sc.total.blank + " 题",
+      "估算词汇量：" + estimateLabel(sc.result) + "（区间 " + sc.result.rangeText + "）",
+      "用时：" + fmtTime(state.elapsed),
+      "正确 " + sc.total.correct + " · 错误 " + sc.total.wrong + " · 超时未答 " + sc.total.timeout + " · 未测 " + sc.total.blank,
       "“无正确含义”题答对：" + sc.trap.correct + " / " + sc.trap.total,
-      "建议回补：" + sc.result.recommend,
-      "生成时间：" + new Date().toLocaleString("zh-CN")
-    ].join("\n");
+      "建议回补：" + sc.result.recommend
+    ];
+    if (state.earlyStop) lines.push("说明：连续 " + STREAK_LIMIT + " 题答错，测试提前结束（未测题按 0 分计）。");
+    lines.push("生成时间：" + new Date().toLocaleString("zh-CN"));
+    return lines.join("\n");
   }
 
   function copyText(text) {
@@ -782,15 +933,18 @@
     if (els.btnRestart2) els.btnRestart2.addEventListener("click", restartQuiz);
     if (els.btnReset) els.btnReset.addEventListener("click", restartQuiz);
     if (els.btnRetake) els.btnRetake.addEventListener("click", restartQuiz);
-    if (els.btnPrev) els.btnPrev.addEventListener("click", function () { goTo(state.current - 1); });
-    if (els.btnNext) els.btnNext.addEventListener("click", function () { goTo(state.current + 1); });
-    if (els.btnSubmit) els.btnSubmit.addEventListener("click", submit);
-    if (els.btnSubmit2) els.btnSubmit2.addEventListener("click", submit);
+    if (els.btnEndTest) els.btnEndTest.addEventListener("click", submitNow);
+    if (els.btnFullscreen) {
+      els.btnFullscreen.addEventListener("click", function () {
+        if (isFullscreen()) exitFullscreen();
+        else requestFullscreen();
+      });
+    }
     if (els.btnSaveResult) els.btnSaveResult.addEventListener("click", saveResult);
     if (els.btnCopyResult) {
       els.btnCopyResult.addEventListener("click", function () {
         var text = buildResultText();
-        if (!text) { toast("提交答案后才能复制结果"); return; }
+        if (!text) { toast("结束测试后才能复制结果"); return; }
         copyText(text).then(function (ok) {
           toast(ok ? "结果已复制到剪贴板" : "复制失败，请手动选择文本");
         });
@@ -798,22 +952,6 @@
     }
     if (els.btnPrint) els.btnPrint.addEventListener("click", function () { window.print(); });
     if (els.btnPrintResult) els.btnPrintResult.addEventListener("click", function () { window.print(); });
-
-    if (els.qOptions) {
-      els.qOptions.addEventListener("click", function (e) {
-        var btn = e.target.closest ? e.target.closest(".opt") : null;
-        if (!btn || state.finished) return;
-        selectChoice(Number(btn.getAttribute("data-choice")));
-      });
-    }
-
-    if (els.sheetMap) {
-      els.sheetMap.addEventListener("click", function (e) {
-        var btn = e.target.closest ? e.target.closest(".sheet-cell") : null;
-        if (!btn || state.finished) return;
-        goTo(Number(btn.getAttribute("data-g")));
-      });
-    }
 
     if (els.inpName) {
       els.inpName.addEventListener("input", function () {
@@ -834,24 +972,15 @@
       els.btnGoResult.addEventListener("click", function (e) {
         if (!state.finished) {
           e.preventDefault();
-          toast("完成答题并提交后查看结果");
+          toast("结束测试后才能查看结果");
           var t = document.getElementById("test");
           if (t) t.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       });
     }
-    if (els.miniJump) {
-      els.miniJump.addEventListener("click", function (e) {
-        if (state.finished) {
-          e.preventDefault();
-          var r = document.getElementById("result");
-          if (r) r.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      });
-    }
 
     document.addEventListener("keydown", function (e) {
-      if (state.finished || !els.runner || els.runner.hidden) return;
+      if (state.finished || state.phase !== "testing" || !els.testStage || els.testStage.hidden) return;
       var tag = (e.target && e.target.tagName) || "";
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       var k = e.key;
@@ -860,9 +989,10 @@
       else if (k === "b" || k === "B") { selectChoice(1); e.preventDefault(); }
       else if (k === "c" || k === "C") { selectChoice(2); e.preventDefault(); }
       else if (k === "d" || k === "D") { selectChoice(3); e.preventDefault(); }
-      else if (k === "ArrowLeft") { goTo(state.current - 1); e.preventDefault(); }
-      else if (k === "ArrowRight") { goTo(state.current + 1); e.preventDefault(); }
     });
+
+    document.addEventListener("fullscreenchange", syncFullscreenBtn);
+    document.addEventListener("webkitfullscreenchange", syncFullscreenBtn);
 
     window.addEventListener("pagehide", saveState);
     document.addEventListener("visibilitychange", function () {
@@ -885,27 +1015,28 @@
       btnStart: $("#btnStart"),
       btnResume: $("#btnResume"),
       btnRestart2: $("#btnRestart2"),
-      runner: $("#runner"),
-      qCard: $("#qCard"),
+      testStage: $("#testStage"),
+      stageTimer: $("#stageTimer"),
+      countdown: $("#countdown"),
+      cdNum: $("#cdNum"),
+      cdFg: $("#cdFg"),
       qLevel: $("#qLevel"),
       qCount: $("#qCount"),
       qLevelCount: $("#qLevelCount"),
-      qProgress: $("#qProgress"),
       qWord: $("#qWord"),
       qPos: $("#qPos"),
       qOptions: $("#qOptions"),
-      btnPrev: $("#btnPrev"),
-      btnNext: $("#btnNext"),
-      btnSubmit: $("#btnSubmit"),
-      btnSubmit2: $("#btnSubmit2"),
-      sheetAnswered: $("#sheetAnswered"),
-      sheetLevels: $("#sheetLevels"),
+      feedback: $("#feedback"),
+      streak: $("#streak"),
+      streakNum: $("#streakNum"),
       sheetMap: $("#sheetMap"),
-      miniCount: $("#miniCount"),
-      miniLevel: $("#miniLevel"),
-      miniJump: $("#miniJump"),
+      btnFullscreen: $("#btnFullscreen"),
+      btnEndTest: $("#btnEndTest"),
       resultEmpty: $("#resultEmpty"),
       resultBody: $("#resultBody"),
+      earlyBanner: $("#earlyBanner"),
+      earlyReason: $("#earlyReason"),
+      earlyNote: $("#earlyNote"),
       resLevel: $("#resLevel"),
       resSub: $("#resSub"),
       resBadge: $("#resBadge"),
@@ -950,7 +1081,7 @@
     loadState();
 
     renderHeroLadder();
-    renderSheet();
+    renderProgressMap();
     renderAnswerTables();
     renderRangeTable();
     renderLevelTable(null);
@@ -976,8 +1107,9 @@
     }
 
     renderHistory();
-    updateSheet();
+    updateProgressMap();
     fillPrintHeader();
+    syncFullscreenBtn();
   }
 
   if (document.readyState === "loading") {
