@@ -43,7 +43,7 @@
 
   /** 边缘级的词汇量区间（该级 12–14 分） */
   function rangeForEdge(level, nextLevel) {
-    return [roundInt(level.cum + (12 / 20) * nextLevel.inc), roundInt(level.cum + 0.75 * nextLevel.inc)];
+    return [roundInt(level.cum + (12 / 20) * nextLevel.inc), roundInt(level.cum + (14 / 20) * nextLevel.inc)];
   }
 
   /** 把题库拍平成 100 题（带级别信息与全局序号） */
