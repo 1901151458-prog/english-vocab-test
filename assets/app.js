@@ -334,9 +334,6 @@
         "</button>";
     }
     els.qOptions.innerHTML = html;
-    $$(".opt", els.qOptions).forEach(function (b) {
-      b.addEventListener("click", function () { selectChoice(Number(b.getAttribute("data-choice"))); });
-    });
 
     updateProgressMap();
     startCountdown();
@@ -964,6 +961,11 @@
 
   /* ------------------------------ 事件绑定 ------------------------------ */
   function bindEvents() {
+    if (els.qOptions) els.qOptions.addEventListener("click", function (e) {
+      var b = e.target.closest ? e.target.closest(".opt") : null;
+      if (!b || b.disabled) return;
+      selectChoice(Number(b.getAttribute("data-choice")));
+    });
     if (els.btnStart) els.btnStart.addEventListener("click", startFresh);
     if (els.btnResume) els.btnResume.addEventListener("click", resumeQuiz);
     if (els.btnRestart2) els.btnRestart2.addEventListener("click", restartQuiz);
