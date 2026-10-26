@@ -1931,3 +1931,8 @@ body.is-testing .wrap { width: 100% !important; max-width: none !important; padd
 
 .rule-note{margin:18px 0 0;padding:13px 16px;border-left:3px solid #1a6fb0;background:#eef6fc;color:#23445e;font-size:13.5px;line-height:1.85;border-radius:0 9px 9px 0}
 .rule-note strong{color:#0d3f65}
+
+/* 细节：焦点环与选区 */
+::selection{background:rgba(30,106,150,.20)}
+a:focus-visible,button:focus-visible,.opt:focus-visible{outline:3px solid var(--brand-3);outline-offset:2px;border-radius:8px}
+.hero h1 em{color:var(--accent);background:linear-gradient(transparent 62%,rgba(192,85,63,.18) 62%)}
