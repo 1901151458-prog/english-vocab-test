@@ -1107,6 +1107,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
     streak: 0,
     locked: false,
     phase: "idle",
+    mode: "placement",
     countdownId: null,
     countdownStart: 0,
     nextTimer: null,
@@ -1206,6 +1207,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
         earlyStop: state.earlyStop,
         completedAll: state.completedAll,
         stopLevel: state.stopLevel,
+        mode: state.mode,
         profile: state.profile,
         history: state.history,
         savedAt: Date.now()
@@ -1227,6 +1229,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
       state.earlyStop = !!obj.earlyStop;
       state.completedAll = !!obj.completedAll;
       state.stopLevel = Number(obj.stopLevel) || 0;
+      state.mode = obj.mode === "practice" ? "practice" : "placement";
       state.elapsed = Number(obj.elapsed) || 0;
       state.profile = obj.profile || { name: "", cls: "" };
       state.history = Array.isArray(obj.history) ? obj.history : [];
@@ -1340,6 +1343,33 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
   }
 
   /* ------------------------------ 开始面板 ------------------------------ */
+  function isPractice() { return state.mode === "practice"; }
+
+  function renderMode() {
+    var practice = isPractice();
+    var locked = answeredCount() > 0 && !state.finished;
+    if (els.modeSwitch) {
+      els.modeSwitch.hidden = locked;
+      Array.prototype.forEach.call(els.modeSwitch.querySelectorAll(".mode-btn"), function (b) {
+        var on = b.getAttribute("data-mode") === state.mode;
+        b.classList.toggle("is-on", on);
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+    }
+    if (els.modeHint) els.modeHint.hidden = locked;
+    if (els.btnStart) els.btnStart.textContent = practice ? "开始练习（进入全屏）" : "开始答题（进入全屏）";
+  }
+
+  function setMode(mode) {
+    if (state.phase === "testing" && answeredCount() > 0 && !state.finished) {
+      toast("答题中不能切换模式，请先结束或重新开始");
+      return;
+    }
+    state.mode = mode === "practice" ? "practice" : "placement";
+    saveState();
+    renderStartPanel();
+  }
+
   function renderStartPanel() {
     if (!els.startPanel) return;
     var answered = answeredCount();
@@ -1347,10 +1377,11 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
 
     els.startPanel.hidden = false;
     els.testStage.hidden = true;
-    document.body.classList.remove("is-testing");
+    document.body.classList.remove("is-testing", "is-practice");
+    renderMode();
 
     if (state.finished) {
-      els.startTitle.textContent = "本次测试已结束";
+      els.startTitle.textContent = isPractice() ? "本次练习已结束" : "本次测试已结束";
       els.startSub.textContent = scoreCache
         ? (state.earlyStop ? "提前结束 · " : "") + "答对 " + scoreCache.total.correct + " / 100 · 定级 " + scoreCache.result.label
         : "已完成";
@@ -1369,11 +1400,15 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
       els.startNote.textContent = "进度保存在本机浏览器；也可以重新开始一套新的。";
     } else {
       els.startTitle.textContent = "准备好了吗？";
-      els.startSub.textContent = "共 100 题 · 每题 4 个选项 · 每题 5 秒自动进入下一题";
+      els.startSub.textContent = isPractice()
+        ? "共 100 题 · 不限时 · 选完立刻看释义，手动进入下一题"
+        : "共 100 题 · 每题 4 个选项 · 每题 5 秒自动进入下一题";
       els.btnStart.hidden = false;
       els.btnResume.hidden = true;
       els.btnRestart2.hidden = true;
-      els.startNote.textContent = "开始后进入全屏专注模式；连续 10 题答错会自动结束测试。";
+      els.startNote.textContent = isPractice()
+        ? "练习模式不自动跳题、不因连续答错提前结束；可随时点“结束测试”查看统计。"
+        : "开始后进入全屏专注模式；连续 10 题答错会自动结束测试。";
     }
   }
 
@@ -1409,7 +1444,14 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
     els.qOptions.innerHTML = html;
 
     updateProgressMap();
-    startCountdown();
+    if (isPractice()) {
+      stopCountdown();
+      if (els.countdown) els.countdown.hidden = true;
+      if (els.cdNum) els.cdNum.textContent = "–";
+    } else {
+      if (els.countdown) els.countdown.hidden = false;
+      startCountdown();
+    }
   }
 
   /* ------------------------------ 5 秒倒计时 ------------------------------ */
@@ -1471,6 +1513,12 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
         : '<b>' + (pkg.timeout ? "⏱ 超时未答" : "✗ 答错") + "</b><span>正确答案：" + itemAnswerText(item) +
           (item.ans === -1 ? '<i>（标准释义：' + item.meaning + "）</i>" : "") + "</span>";
     }
+    if (isPractice() && els.feedback) {
+      var meaning = item.meaning ? "<b>" + item.w + "：</b>" + item.meaning : "";
+      els.feedback.innerHTML += '<span class="practice-explain">' + meaning + "</span>" +
+        '<button type="button" class="practice-next" id="practiceNext">' +
+        (state.current >= items.length - 1 ? "查看统计" : "下一题 →") + "</button>";
+    }
     if (els.cdNum) els.cdNum.textContent = "–";
     if (els.countdown) els.countdown.classList.add("is-paused");
   }
@@ -1485,6 +1533,16 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
       saveState();
       renderQuestion();
     }, delay);
+  }
+
+  function practiceNext() {
+    if (!isPractice()) return;
+    if (state.current >= items.length - 1) { finishQuiz(false); return; }
+    state.current += 1;
+    state.locked = false;
+    saveState();
+    renderQuestion();
+    updateProgressMap();
   }
 
   function selectChoice(choice) {
@@ -1503,6 +1561,8 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
     showFeedback({ item: item, state: st, choice: choice, timeout: false });
     updateProgressMap();
     saveState();
+
+    if (isPractice()) return;
 
     var end = state.streak >= STREAK_LIMIT;
     var target = null;
@@ -1544,6 +1604,8 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
     state.phase = "testing";
     state.locked = false;
     state.streak = 0;
+    document.body.classList.toggle("is-practice", isPractice());
+    if (els.countdown) els.countdown.hidden = isPractice();
     if (!state.startedAt) state.startedAt = Date.now();
     startTimer();
     renderQuestion();
@@ -1672,6 +1734,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
   }
 
   function timeNote(ms) {
+    if (isPractice()) return "练习模式 · 不限时";
     var min = ms / 60000;
     if (ms <= 0) return "尚未开始计时";
     if (min > 18) return "明显超过预期用时，结果仅供参考";
@@ -1709,7 +1772,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
     }
 
     els.resLevel.textContent = result.label;
-    els.resSub.textContent = resultSub(result);
+    els.resSub.textContent = (isPractice() ? "练习模式 · " : "") + resultSub(result);
     var badge = els.resBadge;
     badge.textContent = result.code === "edge" ? "边缘" : result.code === "below" ? "未达" : result.code === "perfect" ? "满级" : "通过";
     badge.className = "rc-badge" + (result.code === "edge" ? " is-edge" : result.code === "below" ? " is-below" : "");
@@ -2017,6 +2080,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
     var who = [state.profile.name, state.profile.cls].filter(Boolean).join(" / ") || "未填写";
     var lines = [
       "【初中英语词汇量快速定级测试单 · 选择题版（5 秒/题）】",
+      "模式：" + (isPractice() ? "练习模式（不限时、手动下一题）" : "正式定级（5 秒/题、自动跳题）"),
       "姓名/班级：" + who,
       "答对题数：" + sc.total.correct + " / 100（已答 " + sc.total.answered + " 题，正确率 " + Math.round(sc.accuracy * 100) + "%）",
       "定级：" + sc.result.label,
@@ -2066,6 +2130,14 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
       selectChoice(Number(b.getAttribute("data-choice")));
     });
     if (els.btnStart) els.btnStart.addEventListener("click", startFresh);
+    if (els.modeSwitch) els.modeSwitch.addEventListener("click", function (e) {
+      var b = e.target.closest ? e.target.closest(".mode-btn") : null;
+      if (b) setMode(b.getAttribute("data-mode"));
+    });
+    if (els.feedback) els.feedback.addEventListener("click", function (e) {
+      var b = e.target.closest ? e.target.closest("#practiceNext") : null;
+      if (b) practiceNext();
+    });
     if (els.btnResume) els.btnResume.addEventListener("click", resumeQuiz);
     if (els.btnRestart2) els.btnRestart2.addEventListener("click", restartQuiz);
     if (els.btnReset) els.btnReset.addEventListener("click", restartQuiz);
@@ -2122,6 +2194,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
       var tag = (e.target && e.target.tagName) || "";
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       var k = e.key;
+      if (isPractice() && state.locked && (k === "Enter" || k === " ")) { practiceNext(); e.preventDefault(); return; }
       if (k >= "1" && k <= "4") { selectChoice(Number(k) - 1); e.preventDefault(); }
       else if (k === "a" || k === "A") { selectChoice(0); e.preventDefault(); }
       else if (k === "b" || k === "B") { selectChoice(1); e.preventDefault(); }
@@ -2150,6 +2223,8 @@ if (typeof module !== "undefined" && module.exports) module.exports = VT_DATA;
       startTitle: $("#startTitle"),
       startSub: $("#startSub"),
       startNote: $("#startNote"),
+      modeSwitch: $("#modeSwitch"),
+      modeHint: $("#modeHint"),
       btnStart: $("#btnStart"),
       btnResume: $("#btnResume"),
       btnRestart2: $("#btnRestart2"),
