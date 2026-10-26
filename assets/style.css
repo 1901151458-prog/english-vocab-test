@@ -1936,3 +1936,10 @@ body.is-testing .wrap { width: 100% !important; max-width: none !important; padd
 ::selection{background:rgba(30,106,150,.20)}
 a:focus-visible,button:focus-visible,.opt:focus-visible{outline:3px solid var(--brand-3);outline-offset:2px;border-radius:8px}
 .hero h1 em{color:var(--accent);background:linear-gradient(transparent 62%,rgba(192,85,63,.18) 62%)}
+
+/* 结果页：学习建议链接 / CSV */
+.rc-next{margin:12px 0 0;font-size:13px;line-height:1.8;color:var(--muted)}
+.rc-next a{color:var(--brand-2);text-decoration:none;border-bottom:1px solid transparent}
+.rc-next a:hover{border-bottom-color:currentColor}
+.rc-next span{margin:0 6px;color:var(--line)}
+#btnExportWrong{margin-left:auto}

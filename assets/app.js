@@ -778,6 +778,32 @@
     els.wrongList.innerHTML = html;
   }
 
+  function exportWrongCsv() {
+    if (!scoreCache) { toast("结束测试后才能导出"); return; }
+    var sc = scoreCache;
+    var bad = sc.details.filter(function (d) { return d.state === "wrong" || d.state === "timeout"; });
+    if (!bad.length) { toast("没有错题可导出"); return; }
+    var rows = [["级别", "题号", "单词", "词性", "正确释义", "你的选择", "状态"]];
+    bad.forEach(function (d) {
+      var lv = levels[d.levelIndex] || { id: "", name: "" };
+      rows.push([
+        "Level " + lv.id + " " + lv.name, d.n, d.w, d.pos,
+        itemAnswerText(d), choiceText(d, d.choice),
+        d.state === "timeout" ? "超时未答" : "答错"
+      ]);
+    });
+    var csv = rows.map(function (r) {
+      return r.map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(",");
+    }).join("\r\n");
+    var blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "词汇错题清单-" + new Date().toISOString().slice(0, 10) + ".csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    toast("已导出 " + bad.length + " 题");
+  }
+
   function renderReview(sc) {
     if (!els.reviewTables) return;
     var html = "";
@@ -990,6 +1016,7 @@
     }
     if (els.btnPrint) els.btnPrint.addEventListener("click", function () { window.print(); });
     if (els.btnPrintResult) els.btnPrintResult.addEventListener("click", function () { window.print(); });
+    if (els.btnExportWrong) els.btnExportWrong.addEventListener("click", exportWrongCsv);
 
     if (els.inpName) {
       els.inpName.addEventListener("input", function () {
@@ -1094,6 +1121,7 @@
       ruler: $("#ruler"),
       rulerNote: $("#rulerNote"),
       wrongList: $("#wrongList"),
+      btnExportWrong: $("#btnExportWrong"),
       reviewTables: $("#reviewTables"),
       levelTable: $("#levelTable"),
       rangeTable: $("#rangeTable"),
