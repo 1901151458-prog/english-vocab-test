@@ -11,11 +11,11 @@
 <meta property="og:title" content="初中英语词汇量快速定级测试单（选择题版）">
 <meta property="og:description" content="100 道选择题，每题 4 个选项；每级 20 题、答对 16 题通过，前 15 题全对自动跳级；自动判分定级、估算词汇量、生成错词清单。">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/style.min.css?v=4">
+<link rel="stylesheet" href="assets/style.min.css?v=5">
 <link rel="stylesheet" href="assets/theme-dark.min.css?v=1">
 <script src="assets/theme-toggle.min.js?v=2"></script>
 <script src="/sw-register.js?v=3" defer></script>
-<link rel="preload" as="script" href="assets/app.min.js?v=3">
+<link rel="preload" as="script" href="assets/app.min.js?v=4">
 <link rel="manifest" href="/english-vocab-test/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
@@ -334,8 +334,16 @@
             <button class="btn btn-line btn-sm" id="btnCopyResult" type="button">复制结果</button>
             <button class="btn btn-ghost btn-sm" id="btnPrintResult" type="button">打印结果</button>
             <button class="btn btn-ghost btn-sm" id="btnRetake" type="button">重新测试</button>
+            <button class="btn btn-line btn-sm" id="btnRetryWrong" type="button">错题重练</button>
           </div>
           <p class="rc-next">下一步：<a href="https://1901151458-prog.github.io/english-materials/">英语资料站 · 按年级补词表</a><span>·</span><a href="https://1901151458-prog.github.io/english-materials/vocab-5-books/">五册词汇总表</a><span>·</span><a href="https://1901151458-prog.github.io/english-materials/sdgs/">SDG 阅读室</a></p>
+<div class="retry-panel" id="retryPanel" hidden aria-live="polite">
+            <div class="retry-head"><h4>错题重练</h4><span id="retryProgress"></span><button type="button" id="retryClose" class="btn btn-ghost btn-sm">收起</button></div>
+            <p class="retry-word" id="retryWord"></p>
+            <div class="retry-opts" id="retryOpts"></div>
+            <div class="retry-feedback" id="retryFeedback"></div>
+            <button type="button" class="btn btn-primary btn-sm" id="retryNext" hidden>下一题 →</button>
+          </div>
           <p class="rc-note">结果用于分层教学与词汇回补，不作学业评价依据；抽样误差约 ±10%。</p>
         </div>
 
@@ -516,6 +524,6 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="assets/app.min.js?v=3"></script>
+<script src="assets/app.min.js?v=4"></script>
 </body>
 </html>

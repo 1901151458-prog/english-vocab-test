@@ -867,6 +867,73 @@
     toast("已导出 " + bad.length + " 题");
   }
 
+
+  /* ------------------------------ 错题重练 ------------------------------ */
+  var retryState = { list: [], idx: 0, answered: false };
+  function retryAnswerIndex(d) { return typeof d.answer === 'number' ? d.answer : (d.ans === -1 ? 3 : d.ans); }
+  function renderRetry() {
+    if (!retryState.list.length || !els.retryPanel) return;
+    var d = retryState.list[retryState.idx];
+    retryState.answered = false;
+    els.retryPanel.hidden = false;
+    if (els.retryProgress) els.retryProgress.textContent = "第 " + (retryState.idx + 1) + " / " + retryState.list.length + " 题";
+    if (els.retryWord) els.retryWord.textContent = d.w + "  " + (d.pos || "");
+    if (els.retryOpts) {
+      els.retryOpts.innerHTML = "";
+      for (var i = 0; i < 4; i++) {
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "opt" + (i === 3 ? " opt-none" : "");
+        b.setAttribute("data-choice", i);
+        b.innerHTML = '<span class="opt-letter">' + LETTERS[i] + '</span><span class="opt-text">' +
+          (i === 3 ? NONE_OPTION : (d.opts && d.opts[i])) + "</span>";
+        els.retryOpts.appendChild(b);
+      }
+    }
+    if (els.retryFeedback) { els.retryFeedback.hidden = false; els.retryFeedback.textContent = ""; }
+    if (els.retryNext) els.retryNext.hidden = true;
+  }
+  function startWrongRetry() {
+    if (!scoreCache) { toast("结束测试后才能重练错题"); return; }
+    var bad = scoreCache.details.filter(function (d) { return d.state === "wrong" || d.state === "timeout"; });
+    if (!bad.length) { toast("本次没有错题，不需要重练"); return; }
+    retryState.list = bad; retryState.idx = 0;
+    renderRetry();
+    if (els.retryPanel) els.retryPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  function retryAnswer(choice) {
+    if (retryState.answered) return;
+    retryState.answered = true;
+    var d = retryState.list[retryState.idx];
+    var ok = choice === retryAnswerIndex(d);
+    if (els.retryOpts) {
+      Array.prototype.forEach.call(els.retryOpts.querySelectorAll(".opt"), function (b) {
+        b.disabled = true;
+        var i = Number(b.getAttribute("data-choice"));
+        if (i === retryAnswerIndex(d)) b.classList.add("is-right");
+        if (!ok && i === choice) b.classList.add("is-wrong");
+      });
+    }
+    if (els.retryFeedback) {
+      els.retryFeedback.innerHTML = ok
+        ? '<span class="ok">✓ 正确</span> · 正确答案：' + LETTERS[retryAnswerIndex(d)] + " " + (retryAnswerIndex(d) === 3 ? NONE_OPTION : d.opts[retryAnswerIndex(d)])
+        : '<span class="no">✗ 再想一下</span> · 正确答案：' + LETTERS[retryAnswerIndex(d)] + " " + (retryAnswerIndex(d) === 3 ? NONE_OPTION : d.opts[retryAnswerIndex(d)]) + '<br><b>' + d.w + '：</b>' + d.meaning;
+    }
+    if (els.retryNext) {
+      els.retryNext.hidden = false;
+      els.retryNext.textContent = retryState.idx >= retryState.list.length - 1 ? "完成重练" : "下一题 →";
+    }
+  }
+  function retryNext() {
+    if (!retryState.answered) return;
+    if (retryState.idx >= retryState.list.length - 1) {
+      if (els.retryPanel) els.retryPanel.hidden = true;
+      toast("错题重练完成");
+      return;
+    }
+    retryState.idx += 1;
+    renderRetry();
+  }
+
   function renderReview(sc) {
     if (!els.reviewTables) return;
     var html = "";
@@ -1089,6 +1156,13 @@
     if (els.btnPrint) els.btnPrint.addEventListener("click", function () { window.print(); });
     if (els.btnPrintResult) els.btnPrintResult.addEventListener("click", function () { window.print(); });
     if (els.btnExportWrong) els.btnExportWrong.addEventListener("click", exportWrongCsv);
+    if (els.btnRetryWrong) els.btnRetryWrong.addEventListener("click", startWrongRetry);
+    if (els.retryOpts) els.retryOpts.addEventListener("click", function (e) {
+      var b = e.target.closest ? e.target.closest(".opt") : null;
+      if (b && !b.disabled) retryAnswer(Number(b.getAttribute("data-choice")));
+    });
+    if (els.retryNext) els.retryNext.addEventListener("click", retryNext);
+    if (els.retryClose) els.retryClose.addEventListener("click", function () { if (els.retryPanel) els.retryPanel.hidden = true; });
 
     if (els.inpName) {
       els.inpName.addEventListener("input", function () {
@@ -1197,6 +1271,14 @@
       rulerNote: $("#rulerNote"),
       wrongList: $("#wrongList"),
       btnExportWrong: $("#btnExportWrong"),
+      btnRetryWrong: $("#btnRetryWrong"),
+      retryPanel: $("#retryPanel"),
+      retryProgress: $("#retryProgress"),
+      retryWord: $("#retryWord"),
+      retryOpts: $("#retryOpts"),
+      retryFeedback: $("#retryFeedback"),
+      retryNext: $("#retryNext"),
+      retryClose: $("#retryClose"),
       reviewTables: $("#reviewTables"),
       levelTable: $("#levelTable"),
       rangeTable: $("#rangeTable"),
