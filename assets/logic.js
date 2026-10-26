@@ -8,7 +8,7 @@
 (function (root) {
   "use strict";
 
-  var PASS = 16;
+  var PASS = 15;
   var EDGE = 12;
   var NONE_INDEX = 3;
 
@@ -36,12 +36,12 @@
     return Math.round(n);
   }
 
-  /** 通过级的词汇量区间（该级 16–20 分） */
+  /** 通过级的词汇量区间（该级 15–20 分） */
   function rangeForPass(level, nextLevel) {
     return [level.cum, roundInt(level.cum + (11 / 20) * nextLevel.inc)];
   }
 
-  /** 边缘级的词汇量区间（该级 12–15 分） */
+  /** 边缘级的词汇量区间（该级 12–14 分） */
   function rangeForEdge(level, nextLevel) {
     return [roundInt(level.cum + (12 / 20) * nextLevel.inc), roundInt(level.cum + 0.75 * nextLevel.inc)];
   }
@@ -123,7 +123,7 @@
       result.recommend = "Level " + (highest + 1) + " " + next.name;
       result.estimate = roundInt(prev.cum + (nextCount / 20) * next.inc);
 
-      if (nextCount >= EDGE && nextCount <= 15) {
+      if (nextCount >= EDGE && nextCount <= PASS - 1) {
         result.code = "edge";
         result.label = "Level " + highest + " 边缘";
         result.range = rangeForEdge(prev, next);
@@ -217,7 +217,7 @@
     var rows = [];
     rows.push({
       label: "未达 Level 1",
-      case: "L1 答对 0–15 题（含 L1 边缘）",
+      case: "L1 答对 0–14 题（含 L1 边缘）",
       range: [0, roundInt(0.75 * levels[0].inc)]
     });
     for (var i = 0; i < levels.length; i++) {
@@ -226,7 +226,7 @@
       if (isTop) {
         rows.push({
           label: "Level " + lv.id + " " + lv.name,
-          case: "五级全部通过（L5 答对 16–20 题）",
+          case: "五级全部通过（L5 答对 15–20 题）",
           range: [roundInt(lv.cum - 0.2 * lv.inc), lv.cum]
         });
       } else {
@@ -237,7 +237,7 @@
         });
         rows.push({
           label: "Level " + lv.id + " 边缘",
-          case: "L" + lv.id + " 通过，L" + (lv.id + 1) + " 答对 12–15 题",
+          case: "L" + lv.id + " 通过，L" + (lv.id + 1) + " 答对 12–14 题",
           range: rangeForEdge(lv, levels[i + 1])
         });
       }

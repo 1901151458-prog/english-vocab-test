@@ -16,6 +16,7 @@
   var QUESTION_MS = 5000;      // 每题 5 秒
   var FEEDBACK_MS = 1500;      // 反馈停留时间
   var STREAK_LIMIT = 10;       // 连续 10 题答错结束
+  var PASS_PER_LEVEL = 15;     // 本级答对 15 题通过；前 15 题全对自动跳级
   var CD_CIRC = 2 * Math.PI * 20;
 
   /* ------------------------------ 状态 ------------------------------ */
@@ -82,6 +83,23 @@
     var c = state.answers[g];
     if (c === -1) return "timeout";
     return c === logic.answerOf(items[g]) ? "correct" : "wrong";
+  }
+
+  /* 当前级别的题号区间与答对数 */
+  function levelRange(li) {
+    var start = 0;
+    for (var i = 0; i < li; i++) start += levels[i].words.length;
+    return [start, start + levels[li].words.length];
+  }
+  function levelCorrect(li) {
+    var range = levelRange(li), n = 0;
+    for (var g = range[0]; g < range[1]; g++) {
+      if (state.answers[g] === logic.answerOf(items[g])) n++;
+    }
+    return n;
+  }
+  function nextLevelStart(li) {
+    return levelRange(li)[1];
   }
 
   function estimateLabel(result) {
@@ -384,12 +402,13 @@
     if (els.countdown) els.countdown.classList.add("is-paused");
   }
 
-  function scheduleNext(delay, endAfter) {
+  function scheduleNext(delay, endAfter, target) {
     clearTimeout(state.nextTimer);
     state.nextTimer = setTimeout(function () {
       if (endAfter) { finishQuiz(true); return; }
-      if (state.current >= items.length - 1) { finishQuiz(false); return; }
-      state.current += 1;
+      if (target == null) target = state.current + 1;
+      if (target >= items.length) { finishQuiz(false); return; }
+      state.current = target;
       saveState();
       renderQuestion();
     }, delay);
@@ -413,7 +432,19 @@
     saveState();
 
     var end = state.streak >= STREAK_LIMIT;
-    scheduleNext(FEEDBACK_MS + 150, end);
+    var target = null;
+    if (st === "correct") {
+      var range = levelRange(item.levelIndex);
+      var correctNow = levelCorrect(item.levelIndex);
+      if (correctNow >= PASS_PER_LEVEL && state.current === range[0] + PASS_PER_LEVEL - 1) {
+        target = nextLevelStart(item.levelIndex);
+        var nextLv = levels[item.levelIndex + 1];
+        toast(nextLv
+          ? "本级已答对 15 题，通过；自动进入 " + (nextLv.code || ("Level " + nextLv.id)) + " " + nextLv.name
+          : "本级已答对 15 题，测试完成");
+      }
+    }
+    scheduleNext(FEEDBACK_MS + 150, end, target);
   }
 
   function handleTimeout() {
