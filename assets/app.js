@@ -22,6 +22,7 @@
   /* ------------------------------ 状态 ------------------------------ */
   var state = {
     answers: {},          // { 全局题号: 0–3 | -1(超时) }
+    autoPassed: {},       // { levelIndex: true } 前 15 题全对、自动跳级的级别
     current: 0,
     startedAt: null,
     elapsed: 0,
@@ -124,6 +125,7 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         answers: state.answers,
+        autoPassed: state.autoPassed,
         current: state.current,
         startedAt: state.startedAt,
         elapsed: state.elapsed,
@@ -146,6 +148,7 @@
       var obj = JSON.parse(raw);
       if (!obj || typeof obj !== "object") return;
       state.answers = obj.answers && typeof obj.answers === "object" ? obj.answers : {};
+      state.autoPassed = obj.autoPassed && typeof obj.autoPassed === "object" ? obj.autoPassed : {};
       state.current = Number.isFinite(obj.current) ? Math.min(items.length - 1, Math.max(0, obj.current)) : 0;
       state.finished = !!obj.finished;
       state.earlyStop = !!obj.earlyStop;
@@ -438,6 +441,7 @@
       var correctNow = levelCorrect(item.levelIndex);
       if (correctNow >= PASS_PER_LEVEL && state.current === range[0] + PASS_PER_LEVEL - 1) {
         target = nextLevelStart(item.levelIndex);
+        state.autoPassed[item.levelIndex] = true;
         var nextLv = levels[item.levelIndex + 1];
         toast(nextLv
           ? "本级已答对 15 题，通过；自动进入 " + (nextLv.code || ("Level " + nextLv.id)) + " " + nextLv.name
@@ -482,6 +486,7 @@
       if (!window.confirm("重新开始会清空已答的题目，确定吗？")) return;
     }
     state.answers = {};
+    state.autoPassed = {};
     state.current = 0;
     state.startedAt = Date.now();
     state.elapsed = 0;
@@ -557,7 +562,7 @@
     exitFullscreen();
     document.body.classList.remove("is-testing");
     saveState();
-    scoreCache = logic.score(state.answers, data);
+    scoreCache = logic.score(state.answers, data, state.autoPassed);
     renderResult();
     renderStartPanel();
     updateTimer();
@@ -1123,7 +1128,7 @@
     if (els.outDate) els.outDate.textContent = todayText();
 
     if (state.finished) {
-      scoreCache = logic.score(state.answers, data);
+      scoreCache = logic.score(state.answers, data, state.autoPassed);
       renderResult();
       renderStartPanel();
     } else {

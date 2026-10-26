@@ -8,7 +8,7 @@
 (function (root) {
   "use strict";
 
-  var PASS = 15;
+  var PASS = 16;
   var EDGE = 12;
   var NONE_INDEX = 3;
 
@@ -36,14 +36,14 @@
     return Math.round(n);
   }
 
-  /** 通过级的词汇量区间（该级 15–20 分） */
+  /** 通过级的词汇量区间（该级 16–20 分） */
   function rangeForPass(level, nextLevel) {
     return [level.cum, roundInt(level.cum + (11 / 20) * nextLevel.inc)];
   }
 
-  /** 边缘级的词汇量区间（该级 12–14 分） */
+  /** 边缘级的词汇量区间（该级 12–15 分） */
   function rangeForEdge(level, nextLevel) {
-    return [roundInt(level.cum + (12 / 20) * nextLevel.inc), roundInt(level.cum + (14 / 20) * nextLevel.inc)];
+    return [roundInt(level.cum + (12 / 20) * nextLevel.inc), roundInt(level.cum + 0.75 * nextLevel.inc)];
   }
 
   /** 把题库拍平成 100 题（带级别信息与全局序号） */
@@ -71,13 +71,13 @@
   }
 
   /** 定级与词汇量估算（counts = 每级答对数） */
-  function evaluate(counts, data) {
+  function evaluate(counts, data, autoPassed) {
     var levels = data.levels;
     var total = counts.reduce(function (a, b) { return a + b; }, 0);
 
     var highest = 0;
     for (var i = 0; i < levels.length; i++) {
-      if (counts[i] >= PASS) highest = i + 1;
+      if (counts[i] >= PASS || (autoPassed && autoPassed[i])) highest = i + 1;
       else break;
     }
 
@@ -85,8 +85,8 @@
       return {
         id: lv.id,
         count: counts[idx],
-        status: levelStatus(counts[idx]),
-        passed: counts[idx] >= PASS
+        status: autoPassed && autoPassed[idx] ? "pass" : levelStatus(counts[idx]),
+        passed: counts[idx] >= PASS || !!(autoPassed && autoPassed[idx])
       };
     });
 
@@ -140,7 +140,7 @@
   }
 
   /** 整卷判分：answers = { 全局题号: 0–3 } */
-  function score(answers, data) {
+  function score(answers, data, autoPassed) {
     var items = flatten(data);
     var perLevel = data.levels.map(function (lv) {
       return {
@@ -189,7 +189,7 @@
     total.answered = total.correct + total.wrong + total.timeout;
 
     var counts = perLevel.map(function (p) { return p.correct; });
-    var result = evaluate(counts, data);
+    var result = evaluate(counts, data, autoPassed);
 
     var trapTotal = 0, trapCorrect = 0;
     details.forEach(function (d) {
@@ -217,7 +217,7 @@
     var rows = [];
     rows.push({
       label: "未达 Level 1",
-      case: "L1 答对 0–14 题（含 L1 边缘）",
+      case: "L1 答对 0–15 题（含 L1 边缘）",
       range: [0, roundInt(0.75 * levels[0].inc)]
     });
     for (var i = 0; i < levels.length; i++) {
@@ -226,7 +226,7 @@
       if (isTop) {
         rows.push({
           label: "Level " + lv.id + " " + lv.name,
-          case: "五级全部通过（L5 答对 15–20 题）",
+          case: "五级全部通过（L5 答对 16–20 题）",
           range: [roundInt(lv.cum - 0.2 * lv.inc), lv.cum]
         });
       } else {
@@ -237,7 +237,7 @@
         });
         rows.push({
           label: "Level " + lv.id + " 边缘",
-          case: "L" + lv.id + " 通过，L" + (lv.id + 1) + " 答对 12–14 题",
+          case: "L" + lv.id + " 通过，L" + (lv.id + 1) + " 答对 12–15 题",
           range: rangeForEdge(lv, levels[i + 1])
         });
       }
