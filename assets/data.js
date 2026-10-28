@@ -8,7 +8,7 @@
 const VT_DATA = {
  "meta": {
   "title": "初中英语词汇量快速定级测试单",
-  "subtitle": "人教版《英语》（2024 新版）· 成都适用 · 初二 / 初三",
+  "subtitle": "人教版《英语》（新课纲版）· 成都适用 · 初二 / 初三",
   "version": "v3.0",
   "updated": "2026-10",
   "format": "mcq",
