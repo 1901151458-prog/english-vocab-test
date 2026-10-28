@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="assets/theme-dark.min.css?v=1">
 <script src="assets/theme-toggle.min.js?v=2"></script>
 <script src="/sw-register.js?v=3" defer></script>
-<link rel="preload" as="script" href="assets/app.min.js?v=5">
+<link rel="preload" as="script" href="assets/app.min.js?v=6">
 <link rel="manifest" href="/english-vocab-test/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
@@ -173,11 +173,6 @@
         <div class="start-main">
           <h3 id="startTitle">准备好了吗？</h3>
           <p class="start-sub" id="startSub">最多 100 题 · 每级 20 题 · 答对 16 题通过 · 前 15 题全对自动跳级</p>
-          <div class="mode-switch" id="modeSwitch" role="group" aria-label="答题模式">
-            <button type="button" class="mode-btn is-on" data-mode="placement" aria-pressed="true">正式定级</button>
-            <button type="button" class="mode-btn" data-mode="practice" aria-pressed="false">练习模式</button>
-          </div>
-          <p class="mode-hint" id="modeHint">正式：每题 5 秒、自动跳题；练习：不限时、选完看释义、手动下一题。</p>
           <ul class="start-points">
             <li><span>1</span>选出单词的正确中文含义；没有正确含义就选「以上都不正确」</li>
             <li><span>2</span>每题限时 5 秒，选完立即判对错，随后自动进入下一题</li>
@@ -524,6 +519,6 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="assets/app.min.js?v=5"></script>
+<script src="assets/app.min.js?v=6"></script>
 </body>
 </html>

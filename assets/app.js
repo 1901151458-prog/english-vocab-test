@@ -156,7 +156,7 @@
       state.earlyStop = !!obj.earlyStop;
       state.completedAll = !!obj.completedAll;
       state.stopLevel = Number(obj.stopLevel) || 0;
-      state.mode = obj.mode === "practice" ? "practice" : "placement";
+      state.mode = "placement";
       state.elapsed = Number(obj.elapsed) || 0;
       state.profile = obj.profile || { name: "", cls: "" };
       state.history = Array.isArray(obj.history) ? obj.history : [];
