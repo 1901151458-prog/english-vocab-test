@@ -1843,7 +1843,8 @@ body.is-testing .wrap { width: 100% !important; max-width: none !important; padd
     padding-bottom: 2.5mm;
     border-bottom: 1.5pt solid #134B70;
   }
-  .print-header h1 { font-size: 15pt; color: #134B70; letter-spacing: .4pt; }
+  .print-header h1,
+.print-header .print-title { font-size: 15pt; color: #134B70; letter-spacing: .4pt; font-weight: 700; }
   .print-header p { font-size: 8.4pt; color: #345; margin-top: 1.2mm; }
   .print-header .print-fields { font-size: 9pt; color: #000; margin-top: 2.5mm; }
 
